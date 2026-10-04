@@ -46,6 +46,10 @@ public:
   void draw(Surface* dst, int src_x, int src_y, int dst_x, int dst_y,
             int dst_w, int dst_h);
 
+  // Scale the entire surface into a destination rectangle.
+  void drawScaled(Surface* dst, int dst_x, int dst_y,
+                  int dst_w, int dst_h);
+
   void blend(int src_x, int src_y, int dst_x, int dst_y,
              int dst_w, int dst_h, int a=255);
   void blend(Surface* dst, int src_x, int src_y, int dst_x, int dst_y,

@@ -157,6 +157,7 @@ protected:
 
   /* Display */
   Fl_Group *displayModeGroup;
+  Fl_Check_Button *scaleToWindowCheckbox;
   Fl_Round_Button *windowedButton;
   Fl_Round_Button *currentMonitorButton;
   Fl_Round_Button *allMonitorsButton;

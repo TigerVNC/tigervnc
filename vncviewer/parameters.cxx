@@ -190,6 +190,12 @@ core::BoolParameter
                true);
 
 core::BoolParameter
+  scaleToWindow("ScaleToWindow",
+                _("Scale the remote desktop to fit the window, preserving "
+                  "its aspect ratio, instead of resizing the remote desktop"),
+                false);
+
+core::BoolParameter
   viewOnly("ViewOnly",
            _("Don't send any mouse or keyboard events to the server"),
            false);
@@ -285,6 +291,7 @@ static core::VoidParameter* parameterArray[] = {
   &rfb::CConnection::noJpeg,
   &qualityLevel,
   /* Display */
+  &scaleToWindow,
   &fullScreen,
   &fullScreenMode,
   &fullScreenSelectedMonitors,

@@ -21,6 +21,7 @@
 #include <config.h>
 #endif
 
+#include <algorithm>
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
@@ -95,6 +96,7 @@ static const int FAKE_KEY_CODE = 0xffff;
 
 Viewport::Viewport(int w, int h, CConn* cc_)
   : Fl_Widget(0, 0, w, h), cc(cc_), frameBuffer(nullptr),
+    scaledBuffer(nullptr), scaledBufferDirty(true),
     lastPointerPos(0, 0), lastButtonMask(0),
     keyboard(nullptr), shortcutBypass(false), shortcutActive(false),
     firstLEDState(true), pendingClientClipboard(false),
@@ -125,6 +127,7 @@ Viewport::Viewport(int w, int h, CConn* cc_)
   cc->setFramebuffer(frameBuffer);
 
   contextMenu = new Fl_Menu_Button(0, 0, 0, 0);
+
   // Setting box type to FL_NO_BOX prevents it from trying to draw the
   // button component (which we don't want)
   contextMenu->box(FL_NO_BOX);
@@ -150,6 +153,8 @@ Viewport::Viewport(int w, int h, CConn* cc_)
 
 Viewport::~Viewport()
 {
+  delete scaledBuffer;
+
   // Unregister all timeouts in case they get a change tro trigger
   // again later when this object is already gone.
   Fl::remove_timeout(handlePointerTimeout, this);
@@ -188,7 +193,14 @@ void Viewport::updateWindow()
   core::Rect r;
 
   r = frameBuffer->getDamage();
-  damage(FL_DAMAGE_USER1, r.tl.x + x(), r.tl.y + y(), r.width(), r.height());
+  if (r.is_empty())
+    return;
+
+  scaledBufferDirty = true;
+  if (scaleToWindow)
+    damage(FL_DAMAGE_USER1);
+  else
+    damage(FL_DAMAGE_USER1, r.tl.x + x(), r.tl.y + y(), r.width(), r.height());
 }
 
 static const char * dotcursor_xpm[] = {
@@ -261,8 +273,16 @@ void Viewport::showCursor()
 
   if (cursorIsBlank && alwaysCursor && (cursorType == "system")) {
     window()->cursor(FL_CURSOR_DEFAULT);
-  } else {
+  } else if ((w() == frameBuffer->width()) &&
+             (h() == frameBuffer->height())) {
     window()->cursor(cursor, cursorHotspot.x, cursorHotspot.y);
+  } else {
+    core::Point size = desktopToWindow({cursor->w(), cursor->h()});
+    core::Point hotspot = desktopToWindow(cursorHotspot);
+    Fl_RGB_Image* scaled = static_cast<Fl_RGB_Image*>(
+      cursor->copy(std::max(1, size.x), std::max(1, size.y)));
+    window()->cursor(scaled, hotspot.x, hotspot.y);
+    delete scaled;
   }
 }
 
@@ -383,6 +403,28 @@ void Viewport::pushLEDState()
 }
 
 
+Surface* Viewport::displayBuffer()
+{
+  if ((w() == frameBuffer->width()) && (h() == frameBuffer->height()))
+    return frameBuffer;
+
+  if (!scaledBuffer) {
+    scaledBuffer = new Surface(w(), h());
+    scaledBufferDirty = true;
+  }
+  if (scaledBufferDirty) {
+    frameBuffer->drawScaled(scaledBuffer, 0, 0, w(), h());
+    scaledBufferDirty = false;
+  }
+  return scaledBuffer;
+}
+
+core::Point Viewport::desktopToWindow(const core::Point& pos) const
+{
+  return {int((int64_t)pos.x * w() / frameBuffer->width()),
+          int((int64_t)pos.y * h() / frameBuffer->height())};
+}
+
 void Viewport::draw(Surface* dst)
 {
   int X, Y, W, H;
@@ -392,7 +434,7 @@ void Viewport::draw(Surface* dst)
   if ((W == 0) || (H == 0))
     return;
 
-  frameBuffer->draw(dst, X - x(), Y - y(), X, Y, W, H);
+  displayBuffer()->draw(dst, X - x(), Y - y(), X, Y, W, H);
 }
 
 
@@ -405,11 +447,11 @@ void Viewport::draw()
   if ((W == 0) || (H == 0))
     return;
 
-  frameBuffer->draw(X - x(), Y - y(), X, Y, W, H);
+  displayBuffer()->draw(X - x(), Y - y(), X, Y, W, H);
 }
 
 
-void Viewport::resize(int x, int y, int w, int h)
+void Viewport::resizeFramebuffer(int w, int h)
 {
   if ((w != frameBuffer->width()) || (h != frameBuffer->height())) {
     vlog.debug("Resizing framebuffer from %dx%d to %dx%d",
@@ -420,7 +462,20 @@ void Viewport::resize(int x, int y, int w, int h)
     cc->setFramebuffer(frameBuffer);
   }
 
+  delete scaledBuffer;
+  scaledBuffer = nullptr;
+  redraw();
+}
+
+void Viewport::resize(int x, int y, int w, int h)
+{
+  if ((w != this->w()) || (h != this->h())) {
+    delete scaledBuffer;
+    scaledBuffer = nullptr;
+  }
   Fl_Widget::resize(x, y, w, h);
+  if (Fl::belowmouse() == this)
+    showCursor();
 }
 
 
@@ -661,7 +716,13 @@ void Viewport::flushPendingClipboard()
 void Viewport::handlePointerEvent(const core::Point& pos,
                                   uint16_t buttonMask)
 {
-  filterPointerEvent(pos, buttonMask);
+  core::Point remote;
+
+  remote.x = int((int64_t)pos.x * frameBuffer->width() / w());
+  remote.y = int((int64_t)pos.y * frameBuffer->height() / h());
+  remote.x = std::max(0, std::min(remote.x, frameBuffer->width() - 1));
+  remote.y = std::max(0, std::min(remote.y, frameBuffer->height() - 1));
+  filterPointerEvent(remote, buttonMask);
 }
 
 
@@ -1023,7 +1084,7 @@ void Viewport::popupContextMenu()
   case ID_RESIZE:
     if (window()->fullscreen_active())
       break;
-    window()->size(w(), h());
+    window()->size(frameBuffer->width(), frameBuffer->height());
     break;
   case ID_CTRL:
     if (m->value())
