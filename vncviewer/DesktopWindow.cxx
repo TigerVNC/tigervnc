@@ -22,7 +22,6 @@
 #endif
 
 #include <algorithm>
-
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
@@ -361,9 +360,6 @@ void DesktopWindow::resizeFramebuffer(int new_w, int new_h)
 {
   bool maximized;
 
-  if ((new_w == viewport->w()) && (new_h == viewport->h()))
-    return;
-
   maximized = false;
 
 #ifdef WIN32
@@ -384,12 +380,12 @@ void DesktopWindow::resizeFramebuffer(int new_w, int new_h)
   // If we're letting the viewport match the window perfectly, then
   // keep things that way for the new size, otherwise just keep things
   // like they are.
-  if (!fullscreen_active() && !maximized) {
+  if (!scaleToWindow && !fullscreen_active() && !maximized) {
     if ((w() == viewport->w()) && (h() == viewport->h()))
       size(new_w, new_h);
   }
 
-  viewport->size(new_w, new_h);
+  viewport->resizeFramebuffer(new_w, new_h);
 
   repositionWidgets();
 }
@@ -417,17 +413,18 @@ void DesktopWindow::setCursorPos(const core::Point& pos)
     // Do nothing if we do not have the mouse captured.
     return;
   }
+  core::Point local = viewport->desktopToWindow(pos);
 #if defined(WIN32)
-  SetCursorPos(pos.x + x_root() + viewport->x(),
-               pos.y + y_root() + viewport->y());
+  SetCursorPos(local.x + x_root() + viewport->x(),
+               local.y + y_root() + viewport->y());
 #elif defined(__APPLE__)
   CGPoint new_pos;
-  new_pos.x = pos.x + x_root() + viewport->x();
-  new_pos.y = pos.y + y_root() + viewport->y();
+  new_pos.x = local.x + x_root() + viewport->x();
+  new_pos.y = local.y + y_root() + viewport->y();
   CGWarpMouseCursorPosition(new_pos);
 #else // Assume this is Xlib
-  x11_warp_pointer(pos.x + x_root() + viewport->x(),
-                   pos.y + y_root() + viewport->y());
+  x11_warp_pointer(local.x + x_root() + viewport->x(),
+                   local.y + y_root() + viewport->y());
 #endif
 }
 
@@ -1287,7 +1284,7 @@ void DesktopWindow::remoteResize()
   if (viewOnly)
     return;
 
-  if (!::remoteResize)
+  if (scaleToWindow || !::remoteResize)
     return;
   if (!cc->server.supportsSetDesktopSize)
     return;
@@ -1487,6 +1484,20 @@ void DesktopWindow::repositionWidgets()
 {
   int new_x, new_y;
 
+  // Keep the display dimensions independent of the remote framebuffer.
+  int width = cc->server.width();
+  int height = cc->server.height();
+  if (scaleToWindow) {
+    if ((int64_t)w() * height <= (int64_t)h() * width) {
+      height = std::max(1, int((int64_t)height * w() / width));
+      width = w();
+    } else {
+      width = std::max(1, int((int64_t)width * h() / height));
+      height = h();
+    }
+  }
+  viewport->size(width, height);
+
   // Viewport position
 
   new_x = viewport->x();
@@ -1585,6 +1596,8 @@ void DesktopWindow::handleOptions(void *data)
     self->fullscreen_on();
   else if (!fullScreen && self->fullscreen_active())
     self->fullscreen_off();
+  self->repositionWidgets();
+  self->redraw();
 }
 
 void DesktopWindow::handleFullscreenTimeout(void *data)

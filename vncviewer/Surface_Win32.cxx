@@ -96,6 +96,33 @@ void Surface::draw(Surface* dst, int src_x, int src_y,
   DeleteDC(dstdc);
 }
 
+void Surface::drawScaled(Surface* dst, int dst_x, int dst_y,
+                         int dst_w, int dst_h)
+{
+  HDC srcdc = CreateCompatibleDC(nullptr);
+  HDC dstdc = CreateCompatibleDC(nullptr);
+  if (!srcdc || !dstdc) {
+    DWORD error = GetLastError();
+    if (srcdc) DeleteDC(srcdc);
+    if (dstdc) DeleteDC(dstdc);
+    throw core::win32_error("CreateCompatibleDC", error);
+  }
+
+  HGDIOBJ oldsrc = SelectObject(srcdc, bitmap);
+  HGDIOBJ olddst = SelectObject(dstdc, dst->bitmap);
+  SetStretchBltMode(dstdc, HALFTONE);
+  SetBrushOrgEx(dstdc, 0, 0, nullptr);
+  BOOL result = StretchBlt(dstdc, dst_x, dst_y, dst_w, dst_h,
+                           srcdc, 0, 0, w, h, SRCCOPY);
+  DWORD error = GetLastError();
+  SelectObject(srcdc, oldsrc);
+  SelectObject(dstdc, olddst);
+  DeleteDC(srcdc);
+  DeleteDC(dstdc);
+  if (!result && error != ERROR_INVALID_HANDLE)
+    throw core::win32_error("StretchBlt", error);
+}
+
 void Surface::blend(int /*src_x*/, int /*src_y*/,
                     int /*dst_x*/, int /*dst_y*/,
                     int /*dst_w*/, int /*dst_h*/,
