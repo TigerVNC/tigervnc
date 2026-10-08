@@ -49,6 +49,7 @@
 #include <rfb/CMsgWriter.h>
 #include <rfb/UpdateTracker.h>
 #include <rfb/EncodeManager.h>
+#include <rfb/encodings.h>
 #include <rfb/SConnection.h>
 #include <rfb/SMsgWriter.h>
 
@@ -57,6 +58,9 @@
 static core::IntParameter width("width", "Frame buffer width", 0);
 static core::IntParameter height("height", "Frame buffer height", 0);
 static core::IntParameter count("count", "Number of benchmark iterations", 9);
+static core::EnumParameter encodingParam("encoding", "Encoding to benchmark",
+                                         {"Raw", "RRE", "Hextile", "Tight",
+                                          "ZRLE", "JPEG"}, "Tight");
 
 static core::StringParameter format("format", "Pixel format (e.g. bgr888)", "");
 
@@ -66,13 +70,6 @@ static core::BoolParameter translate("translate",
 
 // The frame buffer (and output) is always this format
 static const rfb::PixelFormat fbPF(32, 24, false, true, 255, 255, 255, 0, 8, 16);
-
-// Encodings to use
-static const int32_t encodings[] = {
-  rfb::encodingTight, rfb::encodingCopyRect, rfb::encodingRRE,
-  rfb::encodingHextile, rfb::encodingZRLE, rfb::pseudoEncodingLastRect,
-  rfb::pseudoEncodingQualityLevel0 + 8,
-  rfb::pseudoEncodingCompressLevel0 + 2};
 
 class DummyOutStream : public rdr::OutStream {
 public:
@@ -135,6 +132,8 @@ public:
   ~SConn();
 
   void writeUpdate(const rfb::UpdateInfo& ui, const rfb::PixelBuffer* pb);
+
+  void setEncoding(int32_t selectedEncoding);
 
   void getStats(double&, unsigned long long&, unsigned long long&);
 
@@ -200,7 +199,7 @@ CConn::CConn(const char *filename)
 
   sc = new SConn();
   sc->client.setPF((bool)translate ? fbPF : pf);
-  ((rfb::SMsgHandler*)sc)->setEncodings(sizeof(encodings) / sizeof(*encodings), encodings);
+  sc->setEncoding(rfb::encodingNum(encodingParam.getValueStr().c_str()));
 }
 
 CConn::~CConn()
@@ -325,6 +324,17 @@ SConn::SConn()
   setWriter(new rfb::SMsgWriter(&client, out));
 
   manager = new Manager(this);
+}
+
+void SConn::setEncoding(int32_t selectedEncoding)
+{
+  const int32_t encodings[] = {
+    selectedEncoding, rfb::pseudoEncodingLastRect,
+    rfb::pseudoEncodingQualityLevel0 + 8,
+    rfb::pseudoEncodingCompressLevel0 + 2
+  };
+  ((rfb::SMsgHandler*)this)->setEncodings(sizeof(encodings) / sizeof(*encodings),
+                                          encodings);
 }
 
 SConn::~SConn()
