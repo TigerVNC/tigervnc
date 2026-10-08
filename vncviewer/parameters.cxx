@@ -895,6 +895,9 @@ char* loadViewerParameters(const char *filename) {
     // Skip empty lines and comments
     if ((line[0] == '\n') || (line[0] == '#') || (line[0] == '\r'))
       continue;
+    // Ignore any stray NULL in the file
+    if (line[0] == '\0')
+      continue;
 
     int len = strlen(line);
     if (line[len-1] == '\n') {
