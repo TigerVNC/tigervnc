@@ -564,12 +564,24 @@ void CConnection::serverInit(int width, int height,
 }
 
 bool CConnection::readAndDecodeRect(const core::Rect& r, int encoding,
+                                    const PixelFormat& pf,
                                     ModifiablePixelBuffer* pb)
 {
-  if (!decoder.decodeRect(r, encoding, pb))
-    return false;
+  PixelFormat origPF;
+  bool ret;
+
+  // We might have pending frames using the existing pixel format
   decoder.flush();
-  return true;
+
+  origPF = server.pf();
+  server.setPF(pf);
+
+  ret = decoder.decodeRect(r, encoding, pb);
+  decoder.flush();
+
+  server.setPF(origPF);
+
+  return ret;
 }
 
 void CConnection::framebufferUpdateStart()

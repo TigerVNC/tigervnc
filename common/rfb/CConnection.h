@@ -225,6 +225,7 @@ namespace rfb {
                     const char* name) override;
 
     bool readAndDecodeRect(const core::Rect& r, int encoding,
+                           const PixelFormat& pf,
                            ModifiablePixelBuffer* pb) override;
 
     void framebufferUpdateStart() override;

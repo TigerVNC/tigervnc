@@ -684,7 +684,6 @@ bool CMsgReader::readSetCursorWithAlpha(int width, int height,
 
   const PixelFormat rgbaPF(32, 32, false, true, 255, 255, 255, 16, 8, 0);
   ManagedPixelBuffer pb(rgbaPF, width, height);
-  PixelFormat origPF;
 
   bool ret;
 
@@ -701,11 +700,8 @@ bool CMsgReader::readSetCursorWithAlpha(int width, int height,
     cursorEncoding = is->readS32();
   }
 
-  origPF = handler->server.pf();
-  handler->server.setPF(rgbaPF);
-  ret = handler->readAndDecodeRect(pb.getRect(), cursorEncoding, &pb);
-  handler->server.setPF(origPF);
-
+  ret = handler->readAndDecodeRect(pb.getRect(), cursorEncoding,
+                                   rgbaPF, &pb);
   if (!ret)
     return false;
 

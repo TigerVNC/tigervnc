@@ -63,6 +63,7 @@ namespace rfb {
                             const char* name) = 0;
 
     virtual bool readAndDecodeRect(const core::Rect& r, int encoding,
+                                   const PixelFormat& pf,
                                    ModifiablePixelBuffer* pb) = 0;
 
     virtual void framebufferUpdateStart() = 0;
