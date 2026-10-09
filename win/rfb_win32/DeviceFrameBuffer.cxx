@@ -271,7 +271,7 @@ void DeviceFrameBuffer::setCursor(HCURSOR hCursor, VNCServer* server)
 
         // Pass 1, outline everything
         uint8_t* in = buffer.data();
-        uint8_t* out = outline.data() + width*4 + 4;
+        uint8_t* out = outline.data() + (width+2)*4 + 4;
         for (int y = 0; y < height; y++) {
           for (int x = 0; x < width; x++) {
             // Visible pixel?
@@ -292,7 +292,7 @@ void DeviceFrameBuffer::setCursor(HCURSOR hCursor, VNCServer* server)
 
         // Pass 2, overwrite with actual cursor
         in = buffer.data();
-        out = outline.data() + width*4 + 4;
+        out = outline.data() + (width+2)*4 + 4;
         for (int y = 0; y < height; y++) {
           for (int x = 0; x < width; x++) {
             if (in[3] > 0)
