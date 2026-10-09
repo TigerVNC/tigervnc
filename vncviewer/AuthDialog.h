@@ -26,7 +26,7 @@
 
 class Fl_Check_Button;
 class Fl_Input;
-class Fl_Secret_Input;
+class Fl_Password_Input;
 
 class CConn;
 
@@ -48,7 +48,7 @@ private:
 private:
   Fl_Check_Button* keepPasswdCheckbox;
   Fl_Input* username;
-  Fl_Secret_Input* passwd;
+  Fl_Password_Input* passwd;
 
   int result_;
 };
