@@ -28,6 +28,6 @@ Source: "@CMAKE_SOURCE_DIR@\LICENCE.TXT"; DestDir: "{app}"; Flags: ignoreversion
 Name: "{group}\TigerVNC"; FileName: "{app}\vncviewer.exe";
 Name: "{group}\Listening TigerVNC"; FileName: "{app}\vncviewer.exe"; Parameters: "-listen";
 
-Name: "{group}\License"; FileName: "write.exe"; Parameters: "LICENCE.TXT"; WorkingDir: "{app}"; Flags: "useapppaths"
-Name: "{group}\Read Me"; FileName: "write.exe"; Parameters: "README.rst"; WorkingDir: "{app}"; Flags: "useapppaths"
+Name: "{group}\License"; FileName: "notepad.exe"; Parameters: "LICENCE.TXT"; WorkingDir: "{app}"; Flags: "useapppaths"
+Name: "{group}\Read Me"; FileName: "notepad.exe"; Parameters: "README.rst"; WorkingDir: "{app}"; Flags: "useapppaths"
 Name: "{group}\Uninstall TigerVNC"; FileName: "{uninstallexe}"; WorkingDir: "{app}";
