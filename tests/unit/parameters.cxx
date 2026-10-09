@@ -287,7 +287,7 @@ TEST(StringParameter, null)
 
   // NULL default value
   EXPECT_THROW({
-    core::StringParameter defnull("stringparam", "", nullptr);
+    core::StringParameter defnull("defnullparam", "", nullptr);
   }, std::invalid_argument);
 }
 
@@ -370,7 +370,7 @@ TEST(EnumParameter, validation)
 
   // Valid default value
   EXPECT_THROW({
-    core::EnumParameter defvalid("enumparam", "", {"a", "b", "c"}, "d");
+    core::EnumParameter defvalid("defvalidparam", "", {"a", "b", "c"}, "d");
   }, std::invalid_argument);
 }
 
@@ -384,12 +384,12 @@ TEST(EnumParameter, null)
 
   // NULL default value
   EXPECT_THROW({
-    core::EnumParameter defnull("enumparam", "", {""}, nullptr);
+    core::EnumParameter defnull("defnullparam", "", {""}, nullptr);
   }, std::invalid_argument);
 
   // NULL enum value
   EXPECT_THROW({
-    core::EnumParameter nullenum("enumparam", "", {"a", nullptr, "b"}, "a");
+    core::EnumParameter nullenum("nullenumparam", "", {"a", nullptr, "b"}, "a");
   }, std::invalid_argument);
 }
 
