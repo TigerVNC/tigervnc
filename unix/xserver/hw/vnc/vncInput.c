@@ -45,6 +45,7 @@ extern _X_EXPORT DevPrivateKey CoreDevicePrivateKey;
 #include <X11/keysym.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
+#include <X11/extensions/XI.h>
 
 extern const unsigned short code_map_qnum_to_xorgevdev[];
 extern const unsigned int code_map_qnum_to_xorgevdev_len;
@@ -90,7 +91,8 @@ static void vncKeysymKeyboardEvent(KeySym keysym, int down);
  */
 void vncInitInputDevice(void)
 {
-	int i, ret;
+	int i;
+	Atom xiclass;
 
 	if ((vncPointerDev != NULL) || (vncKeyboardDev != NULL))
 		return;
@@ -111,13 +113,16 @@ void vncInitInputDevice(void)
 	for (i = 0;i < 256;i++)
 		pressedKeys[i] = NoSymbol;
 
-	ret = AllocDevicePair(serverClient, "TigerVNC",
-	                      &vncPointerDev, &vncKeyboardDev,
-	                      vncPointerProc, vncKeyboardProc,
-			      FALSE);
+	vncPointerDev = AddInputDevice(serverClient, vncPointerProc, TRUE);
+	vncKeyboardDev = AddInputDevice(serverClient, vncKeyboardProc, TRUE);
 
-	if (ret != Success)
+	if (vncPointerDev == NULL || vncKeyboardDev == NULL)
 		FatalError(_("Failed to create TigerVNC input devices\n"));
+
+	xiclass = MakeAtom(XI_MOUSE, sizeof(XI_MOUSE) - 1, TRUE);
+	AssignTypeAndName(vncPointerDev, xiclass, "TigerVNC pointer");
+	xiclass = MakeAtom(XI_KEYBOARD, sizeof(XI_KEYBOARD) - 1, TRUE);
+	AssignTypeAndName(vncKeyboardDev, xiclass, "TigerVNC keyboard");
 
 	if (ActivateDevice(vncPointerDev, TRUE) != Success ||
 	    ActivateDevice(vncKeyboardDev, TRUE) != Success)
