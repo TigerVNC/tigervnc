@@ -117,6 +117,7 @@ namespace rfb {
     const char* getName() const { return name.c_str(); }
     unsigned getLEDState() const { return ledState; }
     bool isDesktopReady() const { return desktopStarted; }
+    int getIdleRemainingMs() { return idleTimer.getRemainingMs(); }
 
     // Event handlers
     void keyEvent(uint32_t keysym, uint32_t keycode, bool down);

@@ -37,6 +37,7 @@
 #include <rfb/ComparingUpdateTracker.h>
 #include <rfb/Encoder.h>
 #include <rfb/Exception.h>
+#include <rfb/FadingPixelBuffer.h>
 #include <rfb/KeyRemapper.h>
 #include <rfb/KeysymStr.h>
 #include <rfb/Security.h>
@@ -59,6 +60,9 @@ using namespace rfb;
 static const unsigned LOGIN_GRACE_TIME = 120;
 // Number of seconds allowed to flush a closing socket
 static const unsigned CLOSE_GRACE_TIME = 5;
+// Number of seconds the framebuffer will fade to black before
+// disconnecting the client or shutting down the server
+static const unsigned FADING_TIME = 10;
 
 static core::LogWriter vlog("VNCSConnST");
 
@@ -71,10 +75,10 @@ VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket *s,
     inProcessMessages(false),
     pendingSyncFence(false), syncFence(false), fenceFlags(0),
     fenceDataLen(0), fenceData(nullptr), congestionTimer(this),
-    losslessTimer(this), server(server_),
+    losslessTimer(this), server(server_), fadedBuffer(nullptr),
     updateRenderedCursor(false), removeRenderedCursor(false),
     continuousUpdates(false), encodeManager(this), idleTimer(this),
-    pointerEventTime(0), clientHasCursor(false)
+    fadeTimer(this), pointerEventTime(0), clientHasCursor(false)
 {
   socketTimer.start(core::secsToMillis(LOGIN_GRACE_TIME));
 
@@ -104,6 +108,7 @@ VNCSConnectionST::~VNCSConnectionST()
   }
 
   delete [] fenceData;
+  delete fadedBuffer;
 }
 
 
@@ -269,6 +274,12 @@ void VNCSConnectionST::pixelBufferChange()
       // Drop any lossy tracking that is now outside the framebuffer
       encodeManager.pruneLosslessRefresh(server->getPixelBuffer()->getRect());
     }
+
+    if (fadedBuffer) {
+      delete fadedBuffer;
+      fadedBuffer = new FadingPixelBuffer(server->getPixelBuffer());
+    }
+
     // Just update the whole screen at the moment because we're too lazy to
     // work out what's actually changed.
     updates.clear();
@@ -494,6 +505,14 @@ void VNCSConnectionST::clientReady(bool shared)
 {
   if (rfb::Server::idleTimeout)
     idleTimer.start(core::secsToMillis(rfb::Server::idleTimeout));
+
+  if (rfb::Server::idleTimeout || rfb::Server::maxIdleTime) {
+    // Trigger the timer just as we are about to start fading
+    if (timeToIdleTimeout() < FADING_TIME * 1000.0f)
+      fadeTimer.start(1000 / rfb::Server::frameRate);
+    else
+      fadeTimer.start(timeToIdleTimeout() - FADING_TIME * 1000.0f);
+  }
 
   if (rfb::Server::alwaysShared || reverseConnection) shared = true;
   if (!accessCheck(AccessNonShared)) shared = true;
@@ -858,6 +877,54 @@ void VNCSConnectionST::handleTimeout(core::Timer* t)
     close(e.what());
   }
 
+  if (t == &fadeTimer) {
+    if (server->getPixelBuffer()) {
+      if (timeToIdleTimeout() < FADING_TIME * 1000.0f) {
+        bool needsUpdate;
+        float oldLevel;
+        float newLevel;
+
+        needsUpdate = false;
+
+        if (!fadedBuffer) {
+          fadedBuffer = new FadingPixelBuffer(server->getPixelBuffer());
+          needsUpdate = true;
+        }
+
+        oldLevel = fadedBuffer->getFadeLevel();
+        newLevel = (timeToIdleTimeout() / (FADING_TIME * 1000.0f));
+
+        // FIXME: Don't hardcode 255
+        if ((int)(oldLevel*255) != (int)(newLevel*255)) {
+          fadedBuffer->setFadeLevel(newLevel);
+          needsUpdate = true;
+        }
+
+        if (needsUpdate) {
+          updates.clear();
+          updates.add_changed(server->getPixelBuffer()->getRect());
+          writeFramebufferUpdate();
+        }
+      } else if (fadedBuffer) {
+        delete fadedBuffer;
+        fadedBuffer = nullptr;
+
+        updates.clear();
+        updates.add_changed(server->getPixelBuffer()->getRect());
+        writeFramebufferUpdate();
+      }
+    }
+
+    // Trigger the timer just as we are about to start fading. If we are
+    // currently fading, we need to trigger the timer at the same
+    // rate as the server framerate. This is to ensure that the fading
+    // still occurs even if there is nothing happening on-screen.
+    if (timeToIdleTimeout() < FADING_TIME * 1000.0f)
+      fadeTimer.repeat(1000 / rfb::Server::frameRate);
+    else
+      fadeTimer.repeat(timeToIdleTimeout() - FADING_TIME * 1000.0f);
+  }
+
   if (t == &idleTimer)
     close(_("Idle for too long"));
 }
@@ -874,6 +941,24 @@ bool VNCSConnectionST::isShiftPressed()
     }
 
   return false;
+}
+
+// Returns the number of milliseconds left until the closest idle timer
+// is about to trigger
+int VNCSConnectionST::timeToIdleTimeout()
+{
+  assert(rfb::Server::idleTimeout || rfb::Server::maxIdleTime);
+
+  if (!rfb::Server::maxIdleTime)
+    return idleTimer.getRemainingMs();
+
+  if (!rfb::Server::idleTimeout)
+    return server->getIdleRemainingMs();
+
+  if (idleTimer.getRemainingMs() < server->getIdleRemainingMs())
+    return idleTimer.getRemainingMs();
+
+  return server->getIdleRemainingMs();
 }
 
 void VNCSConnectionST::writeRTTPing()
@@ -1068,6 +1153,29 @@ void VNCSConnectionST::writeDataUpdate()
     damagedCursorRegion.assign_union(ui.changed.intersect(renderedCursorRect));
   }
 
+  if (fadedBuffer) {
+    float oldFadeLevel;
+    float newFadeLevel;
+
+    newFadeLevel = (timeToIdleTimeout() / (FADING_TIME * 1000.0f));
+    oldFadeLevel = fadedBuffer->getFadeLevel();
+
+    if ((int)(oldFadeLevel * 255) != (int)(newFadeLevel * 255)) {
+      updates.clear();
+      updates.add_changed(server->getPixelBuffer()->getRect());
+      fadedBuffer->setFadeLevel(newFadeLevel);
+      updates.getUpdateInfo(&ui, req);
+    }
+
+    try {
+      fadedBuffer->syncBuffers(ui.changed);
+    } catch (std::exception& e) {
+      vlog.error(_("Failed to sync faded buffer: %s"), e.what());
+      delete fadedBuffer;
+      fadedBuffer = nullptr;
+    }
+  }
+
   // If we don't have a normal update, then try a lossless refresh
   if (ui.is_empty() && !writer()->needFakeUpdate()) {
     writeLosslessRefresh();
@@ -1078,7 +1186,11 @@ void VNCSConnectionST::writeDataUpdate()
 
   writeRTTPing();
 
-  encodeManager.writeUpdate(ui, server->getPixelBuffer(), cursor);
+  if (fadedBuffer)
+    // FIXME: Fade the cursor as well
+    encodeManager.writeUpdate(ui, fadedBuffer, nullptr);
+  else
+    encodeManager.writeUpdate(ui, server->getPixelBuffer(), cursor);
 
   writeRTTPing();
 
@@ -1155,8 +1267,23 @@ void VNCSConnectionST::writeLosslessRefresh()
 
   writeRTTPing();
 
-  encodeManager.writeLosslessRefresh(req, server->getPixelBuffer(),
-                                     cursor, maxUpdateSize);
+  if (fadedBuffer) {
+    try {
+      fadedBuffer->syncBuffers(req);
+    } catch (std::exception& e) {
+      vlog.error(_("Failed to sync faded buffer: %s"), e.what());
+      delete fadedBuffer;
+      fadedBuffer = nullptr;
+    }
+  }
+
+  if (fadedBuffer) {
+    encodeManager.writeLosslessRefresh(req, fadedBuffer,
+                                       nullptr, maxUpdateSize);
+  } else {
+    encodeManager.writeLosslessRefresh(req, server->getPixelBuffer(),
+                                       cursor, maxUpdateSize);
+  }
 
   writeRTTPing();
 
