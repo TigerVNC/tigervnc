@@ -146,6 +146,14 @@ static int ProcVncExtSetParam(ClientPtr client)
   // Send DesktopName update if desktop name has been changed
   if (strcasecmp(param, "desktop") == 0)
     vncUpdateDesktopName();
+  else if (strcasecmp(param, "overlaytype") == 0 ||
+           strcasecmp(param, "overlaypos") == 0 ||
+           strcasecmp(param, "overlayinput") == 0 ||
+           strcasecmp(param, "overlayalpha") == 0 ||
+           strcasecmp(param, "overlaysize") == 0 ||
+           strcasecmp(param, "overlayfont") == 0 ||
+           strcasecmp(param, "overlaypadding") == 0)
+    vncUpdateOverlay();
 
 deny:
   free(param);

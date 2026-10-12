@@ -24,16 +24,20 @@
 
 #include <assert.h>
 
+#include "core/Rect.h"
 #include <core/LogWriter.h>
 #include <core/i18n.h>
 #include <core/string.h>
 #include <core/time.h>
+#include "core/Configuration.h"
 
 #include <rdr/FdInStream.h>
 #include <rdr/FdOutStream.h>
 
 #include <network/TcpSocket.h>
 
+#include "rfb/OverlayPixelBuffer.h"
+#include "rfb/PixelBuffer.h"
 #include <rfb/ComparingUpdateTracker.h>
 #include <rfb/Encoder.h>
 #include <rfb/Exception.h>
@@ -55,6 +59,31 @@
 
 using namespace rfb;
 
+core::StringParameter VNCSConnectionST::overlayType
+("OverlayType", "Overlay type (text, png, qr-code)", "");
+core::StringParameter VNCSConnectionST::overlayPos
+("OverlayPos",
+ "Overlay position(s) (tl, tc, tr, cl, cc, cr, bl, bc, br), "
+ "comma-separated for multiple",
+ "");
+core::StringParameter VNCSConnectionST::overlayInput
+("OverlayInput",
+ "Input for specified overlay type (text->text, qr->data, png->filepath)",
+ "");
+core::IntParameter VNCSConnectionST::overlayAlpha
+("OverlayAlpha", "% transparency of the overlay", 50, 0, 100);
+core::IntParameter VNCSConnectionST::overlaySize
+("OverlaySize",
+ "% of framebuffer height the overlay should occupy", 12, 1, 100);
+core::IntParameter VNCSConnectionST::overlayPadding
+("OverlayPadding",
+ "Padding in pixels between the overlay and the screen edge", 10, 0);
+core::StringParameter VNCSConnectionST::overlayFont
+("OverlayFont",
+ "Font used to render text overlays (fontconfig pattern), "
+ "empty for default",
+ "");
+
 // Number of seconds allowed for authentication
 static const unsigned LOGIN_GRACE_TIME = 120;
 // Number of seconds allowed to flush a closing socket
@@ -64,14 +93,14 @@ static core::LogWriter vlog("VNCSConnST");
 
 static Cursor emptyCursor(0, 0, {0, 0}, nullptr);
 
-VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket *s,
+VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket* s,
                                    bool reverse, AccessRights ar)
   : SConnection(ar),
     sock(s), socketTimer(this), reverseConnection(reverse),
     inProcessMessages(false),
     pendingSyncFence(false), syncFence(false), fenceFlags(0),
     fenceDataLen(0), fenceData(nullptr), congestionTimer(this),
-    losslessTimer(this), server(server_),
+    losslessTimer(this), server(server_), overlayBuffer(nullptr),
     updateRenderedCursor(false), removeRenderedCursor(false),
     continuousUpdates(false), encodeManager(this), idleTimer(this),
     pointerEventTime(0), clientHasCursor(false)
@@ -80,6 +109,17 @@ VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket *s,
 
   setStreams(&sock->inStream(), &sock->outStream());
   peerEndpoint = sock->getPeerEndpoint();
+
+  // Initialize the overlay buffer
+  if (overlayInput.getValueStr() != "") {
+    overlayBuffer = new OverlayPixelBuffer(server->getPixelBuffer(),
+                                           overlayType.getValueStr().c_str(),
+                                           overlayPos.getValueStr().c_str(),
+                                           overlayInput.getValueStr().c_str(),
+                                           overlayAlpha, overlaySize,
+                                           overlayPadding,
+                                           overlayFont.getValueStr().c_str());
+  }
 }
 
 
@@ -103,6 +143,7 @@ VNCSConnectionST::~VNCSConnectionST()
     server->keyEvent(keysym, keycode, false);
   }
 
+  delete overlayBuffer;
   delete [] fenceData;
 }
 
@@ -232,6 +273,11 @@ void VNCSConnectionST::processSocketWriteEvent()
 void VNCSConnectionST::pixelBufferChange()
 {
   try {
+    // If the pixelbuffer has changed, we need to set a new parent for the
+    // overlay buffer.
+    if (overlayBuffer)
+      overlayBuffer->setParent(server->getPixelBuffer());
+
     if (state() != RFBSTATE_NORMAL)
       return;
     if (client.width() && client.height() &&
@@ -331,6 +377,16 @@ void VNCSConnectionST::setLEDStateOrClose(unsigned int state)
 {
   try {
     setLEDState(state);
+    writeFramebufferUpdate();
+  } catch(std::exception& e) {
+    close(e.what());
+  }
+}
+
+void VNCSConnectionST::updateOverlayOrClose()
+{
+  try {
+    updateOverlay();
     writeFramebufferUpdate();
   } catch(std::exception& e) {
     close(e.what());
@@ -1078,7 +1134,16 @@ void VNCSConnectionST::writeDataUpdate()
 
   writeRTTPing();
 
-  encodeManager.writeUpdate(ui, server->getPixelBuffer(), cursor);
+  // if we have a overlay buffer, then we need to sync it with the main pixel
+  // buffer before sending the update
+  if (overlayBuffer) {
+    vlog.debug("Using: OverlayBuffer");
+    overlayBuffer->syncBuffers(ui.changed.union_(ui.copied));
+    encodeManager.writeUpdate(ui, overlayBuffer, nullptr);
+  } else {
+    vlog.debug("Using: PixelBuffer");
+    encodeManager.writeUpdate(ui, server->getPixelBuffer(), cursor);
+  }
 
   writeRTTPing();
 
@@ -1155,8 +1220,16 @@ void VNCSConnectionST::writeLosslessRefresh()
 
   writeRTTPing();
 
-  encodeManager.writeLosslessRefresh(req, server->getPixelBuffer(),
-                                     cursor, maxUpdateSize);
+  // If we have an overlay buffer, then we need to sync it with the main pixel
+  // buffer before sending the update
+  if (overlayBuffer) {
+    overlayBuffer->syncBuffers(req);
+    encodeManager.writeLosslessRefresh(req, overlayBuffer, cursor,
+                                       maxUpdateSize);
+  } else {
+    encodeManager.writeLosslessRefresh(req, server->getPixelBuffer(), cursor,
+                                       maxUpdateSize);
+  }
 
   writeRTTPing();
 
@@ -1233,4 +1306,30 @@ void VNCSConnectionST::setLEDState(unsigned int ledstate)
 
   if (client.supportsLEDState())
     writer()->writeLEDState();
+}
+
+void VNCSConnectionST::updateOverlay()
+{
+  std::vector<core::Rect> oldRects;
+  core::Region changed;
+
+  if (!overlayBuffer)
+    return;
+
+  oldRects = overlayBuffer->getOverlayRects();
+
+  overlayBuffer->updateOverlay(overlayType.getValueStr().c_str(),
+                               overlayPos.getValueStr().c_str(),
+                               overlayInput.getValueStr().c_str(),
+                               overlayAlpha, overlaySize,
+                               overlayPadding,
+                               overlayFont.getValueStr().c_str());
+
+  // Updates both the old and new areas where the overlay where drawn.
+  for (const core::Rect& rect : oldRects)
+    changed.assign_union(core::Region(rect));
+  for (const core::Rect& rect : overlayBuffer->getOverlayRects())
+    changed.assign_union(core::Region(rect));
+
+  add_changed(changed);
 }

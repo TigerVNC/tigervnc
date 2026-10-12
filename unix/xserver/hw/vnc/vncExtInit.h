@@ -52,6 +52,7 @@ int vncGetSetPrimary(void);
 int vncGetSendPrimary(void);
 
 void vncUpdateDesktopName(void);
+void vncUpdateOverlay(void);
 
 void vncRequestClipboard(void);
 void vncAnnounceClipboard(int available);

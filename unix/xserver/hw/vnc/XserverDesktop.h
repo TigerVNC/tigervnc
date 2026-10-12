@@ -69,6 +69,7 @@ public:
   void sendClipboardData(const char* data);
   void bell();
   void setLEDState(unsigned int state);
+  void updateOverlay();
   void setDesktopName(const char* name);
   void setCursor(int width, int height, int hotX, int hotY,
                  const unsigned char *rgbaData);
