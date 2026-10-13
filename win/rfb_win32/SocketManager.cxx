@@ -196,6 +196,15 @@ int SocketManager::checkTimeouts() {
         eventMask |= FD_WRITE;
       if (WSAEventSelect(j->second.sock->getFd(), j->first, eventMask) == SOCKET_ERROR)
         throw core::socket_error(_("Unable to adjust socket event mask"), WSAGetLastError());
+      // See SocketManager::processEvent()
+      if (j->second.sock->outStream().hasBufferedData()) {
+        try {
+          j->second.server->processSocketWriteEvent(j->second.sock);
+        } catch (std::exception& e) {
+          vlog.error("%s", e.what());
+          shutdownSocks.push_back(j->second.sock);
+        }
+      }
     }
   }
 
@@ -270,6 +279,16 @@ void SocketManager::processEvent(HANDLE event) {
         eventMask |= FD_WRITE;
       if (WSAEventSelect(ci.sock->getFd(), event, eventMask) == SOCKET_ERROR)
         throw core::socket_error(_("Unable to re-enable socket events"), WSAGetLastError());
+
+      // Windows only signals FD_WRITE once a send() has failed whilst
+      // we are registered for it, and WSAEventSelect() discards any
+      // pending notification. A send that blocked whilst events were
+      // disabled above would therefore never get a notification and
+      // the remaining data would be stuck until the client sent
+      // something. Avoid this by trying again now that we are
+      // registered.
+      if (ci.sock->outStream().hasBufferedData())
+        ci.server->processSocketWriteEvent(ci.sock);
     } catch (std::exception& e) {
       vlog.error("%s", e.what());
       remSocket(ci.sock);
