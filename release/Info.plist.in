@@ -9,7 +9,7 @@
 	<key>CFBundleExecutable</key>
 	<string>vncviewer</string>
 	<key>NSHighResolutionCapable</key>
-	<false/>
+	<true/>
 	<key>CFBundleGetInfoString</key>
 	<string>@VERSION@, Copyright (C) 1999-2026 TigerVNC team and many others (see README.rst)</string>
 	<key>CFBundleIconFile</key>

@@ -71,7 +71,7 @@ END
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
 IDI_ICON                ICON    DISCARDABLE     "@CMAKE_SOURCE_DIR@/media/icons/tigervnc.ico"
+1                       RT_MANIFEST "@CMAKE_SOURCE_DIR@/vncviewer/vncviewer.manifest"
 
 #endif    // English (U.K.) resources
 /////////////////////////////////////////////////////////////////////////////
-

@@ -25,6 +25,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <algorithm>
 #include <stdexcept>
 
 #include <core/LogWriter.h>
@@ -188,7 +189,48 @@ void Viewport::updateWindow()
   core::Rect r;
 
   r = frameBuffer->getDamage();
-  damage(FL_DAMAGE_USER1, r.tl.x + x(), r.tl.y + y(), r.width(), r.height());
+  if ((w() == frameBuffer->width()) && (h() == frameBuffer->height()))
+    damage(FL_DAMAGE_USER1, r.tl.x + x(), r.tl.y + y(), r.width(), r.height());
+  else
+    damage(FL_DAMAGE_USER1);
+}
+
+void Viewport::setFramebufferSize(int width, int height)
+{
+  if ((width == frameBuffer->width()) && (height == frameBuffer->height()))
+    return;
+
+  vlog.debug("Resizing framebuffer from %dx%d to %dx%d",
+             frameBuffer->width(), frameBuffer->height(), width, height);
+
+  PlatformPixelBuffer* newFrameBuffer = new PlatformPixelBuffer(width, height);
+  assert(newFrameBuffer);
+  cc->setFramebuffer(newFrameBuffer);
+  frameBuffer = newFrameBuffer;
+}
+
+int Viewport::framebufferWidth() const
+{
+  return frameBuffer->width();
+}
+
+int Viewport::framebufferHeight() const
+{
+  return frameBuffer->height();
+}
+
+core::Point Viewport::mapToFramebuffer(const core::Point& pos) const
+{
+  return {std::max(0, std::min(frameBuffer->width() - 1,
+                               pos.x * frameBuffer->width() / w())),
+          std::max(0, std::min(frameBuffer->height() - 1,
+                               pos.y * frameBuffer->height() / h()))};
+}
+
+core::Point Viewport::mapFromFramebuffer(const core::Point& pos) const
+{
+  return {std::max(0, std::min(w() - 1, pos.x * w() / frameBuffer->width())),
+          std::max(0, std::min(h() - 1, pos.y * h() / frameBuffer->height()))};
 }
 
 static const char * dotcursor_xpm[] = {
@@ -245,6 +287,23 @@ void Viewport::setCursor()
       memcpy(buffer, data, width * height * 4);
       cursor = new Fl_RGB_Image(buffer, width, height, 4);
       cursorHotspot = hotspot;
+    }
+  }
+
+  if (!cursorIsBlank &&
+      ((w() != frameBuffer->width()) || (h() != frameBuffer->height()))) {
+    int scaledWidth, scaledHeight;
+    Fl_RGB_Image* scaledCursor;
+
+    scaledWidth = std::max(1, width * w() / frameBuffer->width());
+    scaledHeight = std::max(1, height * h() / frameBuffer->height());
+    scaledCursor = (Fl_RGB_Image*)cursor->copy(scaledWidth, scaledHeight);
+    if (scaledCursor) {
+      if (!cursor->alloc_array)
+        delete [] cursor->array;
+      delete cursor;
+      cursor = scaledCursor;
+      cursorHotspot = mapFromFramebuffer(hotspot);
     }
   }
 
@@ -392,7 +451,11 @@ void Viewport::draw(Surface* dst)
   if ((W == 0) || (H == 0))
     return;
 
-  frameBuffer->draw(dst, X - x(), Y - y(), X, Y, W, H);
+  if ((w() != frameBuffer->width()) || (h() != frameBuffer->height()))
+    frameBuffer->drawScaled(dst, 0, 0, frameBuffer->width(),
+                            frameBuffer->height(), x(), y(), w(), h());
+  else
+    frameBuffer->draw(dst, X - x(), Y - y(), X, Y, W, H);
 }
 
 
@@ -405,22 +468,22 @@ void Viewport::draw()
   if ((W == 0) || (H == 0))
     return;
 
-  frameBuffer->draw(X - x(), Y - y(), X, Y, W, H);
+  if ((w() != frameBuffer->width()) || (h() != frameBuffer->height()))
+    frameBuffer->drawScaled(0, 0, frameBuffer->width(),
+                            frameBuffer->height(), x(), y(), w(), h());
+  else
+    frameBuffer->draw(X - x(), Y - y(), X, Y, W, H);
 }
 
 
 void Viewport::resize(int x, int y, int w, int h)
 {
-  if ((w != frameBuffer->width()) || (h != frameBuffer->height())) {
-    vlog.debug("Resizing framebuffer from %dx%d to %dx%d",
-               frameBuffer->width(), frameBuffer->height(), w, h);
-
-    frameBuffer = new PlatformPixelBuffer(w, h);
-    assert(frameBuffer);
-    cc->setFramebuffer(frameBuffer);
-  }
+  bool changed = (this->w() != w) || (this->h() != h);
 
   Fl_Widget::resize(x, y, w, h);
+
+  if (changed && cursor)
+    setCursor();
 }
 
 
@@ -661,7 +724,7 @@ void Viewport::flushPendingClipboard()
 void Viewport::handlePointerEvent(const core::Point& pos,
                                   uint16_t buttonMask)
 {
-  filterPointerEvent(pos, buttonMask);
+  filterPointerEvent(mapToFramebuffer(pos), buttonMask);
 }
 
 

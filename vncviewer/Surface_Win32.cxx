@@ -64,6 +64,29 @@ void Surface::draw(int src_x, int src_y, int dst_x, int dst_y,
 
   if (!BitBlt(fl_gc, dst_x, dst_y, dst_w, dst_h,
               dc, src_x, src_y, SRCCOPY)) {
+    if (GetLastError() != ERROR_INVALID_HANDLE)
+      throw core::win32_error("BitBlt", GetLastError());
+  }
+
+  DeleteDC(dc);
+}
+
+void Surface::drawScaled(int src_x, int src_y, int src_w, int src_h,
+                         int dst_x, int dst_y, int dst_w, int dst_h)
+{
+  HDC dc;
+  int stretchMode;
+
+  dc = CreateCompatibleDC(fl_gc);
+  if (!dc)
+    throw core::win32_error("CreateCompatibleDC", GetLastError());
+
+  if (!SelectObject(dc, bitmap))
+    throw core::win32_error("SelectObject", GetLastError());
+
+  stretchMode = SetStretchBltMode(fl_gc, HALFTONE);
+  if (!StretchBlt(fl_gc, dst_x, dst_y, dst_w, dst_h,
+                  dc, src_x, src_y, src_w, src_h, SRCCOPY)) {
     // If the desktop we're rendering to is inactive (like when the screen
     // is locked or the UAC is active), then GDI calls will randomly fail.
     // This is completely undocumented so we have no idea how best to deal
@@ -73,6 +96,7 @@ void Surface::draw(int src_x, int src_y, int dst_x, int dst_y,
       throw core::win32_error("BitBlt", GetLastError());
   }
 
+  SetStretchBltMode(fl_gc, stretchMode);
   DeleteDC(dc);
 }
 
@@ -91,6 +115,27 @@ void Surface::draw(Surface* dst, int src_x, int src_y,
   origdc = fl_gc;
   fl_gc = dstdc;
   draw(src_x, src_y, dst_x, dst_y, dst_w, dst_h);
+  fl_gc = origdc;
+
+  DeleteDC(dstdc);
+}
+
+void Surface::drawScaled(Surface* dst, int src_x, int src_y,
+                         int src_w, int src_h,
+                         int dst_x, int dst_y, int dst_w, int dst_h)
+{
+  HDC origdc, dstdc;
+
+  dstdc = CreateCompatibleDC(nullptr);
+  if (!dstdc)
+    throw core::win32_error("CreateCompatibleDC", GetLastError());
+
+  if (!SelectObject(dstdc, dst->bitmap))
+    throw core::win32_error("SelectObject", GetLastError());
+
+  origdc = fl_gc;
+  fl_gc = dstdc;
+  drawScaled(src_x, src_y, src_w, src_h, dst_x, dst_y, dst_w, dst_h);
   fl_gc = origdc;
 
   DeleteDC(dstdc);
@@ -214,4 +259,3 @@ void Surface::update(const Fl_RGB_Image* image)
       in += image->ld() - image->w() * image->d();
   }
 }
-
