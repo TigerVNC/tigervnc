@@ -44,7 +44,6 @@ namespace winvnc {
     void worker();
 
     std::mutex lock;
-    std::thread thread;
     DWORD thread_id;
     HWND windowHandle;
     std::string toolTip;
@@ -55,6 +54,10 @@ namespace winvnc {
     UINT dis_activeIcon;
     UINT menu;
     bool runTrayIcon;
+
+    // Must be last, as the thread starts running immediately and uses
+    // the other members
+    std::thread thread;
   };
 
 };
