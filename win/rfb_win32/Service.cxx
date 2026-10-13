@@ -178,8 +178,12 @@ inputDesktopSelected() {
 		DESKTOP_WRITEOBJECTS | DESKTOP_READOBJECTS |
 		DESKTOP_SWITCHDESKTOP | GENERIC_WRITE);
   if (!input) {
+    // We are not allowed to access the input desktop, e.g. the secure
+    // desktop used for UAC prompts when we are not running as a
+    // service. There is nothing we could switch to, so stay on the
+    // current desktop until the input desktop becomes accessible again.
     vlog.debug("Unable to OpenInputDesktop(1):%lu", GetLastError());
-    return false;
+    return true;
   }
 
   DWORD size;
