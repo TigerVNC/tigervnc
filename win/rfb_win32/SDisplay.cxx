@@ -415,23 +415,29 @@ SDisplay::processEvent(HANDLE event) {
       }
 
       // Ensure the cursor is up to date
-      WMCursor::Info info = cursor->getCursorInfo();
-      if (old_cursor != info) {
-        // Update the cursor shape if the visibility has changed
-        bool set_cursor = info.visible != old_cursor.visible;
-        // OR if the cursor is visible and the shape has changed.
-        set_cursor |= info.visible && (old_cursor.cursor != info.cursor);
+      try {
+        WMCursor::Info info = cursor->getCursorInfo();
+        if (old_cursor != info) {
+          // Update the cursor shape if the visibility has changed
+          bool set_cursor = info.visible != old_cursor.visible;
+          // OR if the cursor is visible and the shape has changed.
+          set_cursor |= info.visible && (old_cursor.cursor != info.cursor);
 
-        // Update the cursor shape
-        if (set_cursor)
-          pb->setCursor(info.visible ? info.cursor : nullptr, server);
+          // Update the cursor shape
+          if (set_cursor)
+            pb->setCursor(info.visible ? info.cursor : nullptr, server);
 
-        // Update the cursor position
-        // NB: First translate from Screen coordinates to Desktop
-        Point desktopPos = info.position.translate(screenRect.tl.negate());
-        server->setCursorPos(desktopPos, false);
+          // Update the cursor position
+          // NB: First translate from Screen coordinates to Desktop
+          Point desktopPos = info.position.translate(screenRect.tl.negate());
+          server->setCursorPos(desktopPos, false);
 
-        old_cursor = info;
+          old_cursor = info;
+        }
+      } catch (std::exception& e) {
+        // This fails whilst the input desktop is inaccessible, e.g.
+        // during a UAC prompt, so just try again on the next update
+        vlog.debug("%s", e.what());
       }
 
       // Flush any changes to the server
