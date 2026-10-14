@@ -82,7 +82,7 @@ if(UNIX)
   target_link_libraries(rfbclient pthread)
 endif()
 
-if(ENABLE_H264)
+if(HAVE_H264)
   target_sources(rfbclient PRIVATE
                  H264Decoder.cxx H264DecoderContext.cxx)
   if (AVCODEC_FOUND AND AVUTIL_FOUND AND SWSCALE_FOUND)
