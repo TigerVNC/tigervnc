@@ -28,10 +28,10 @@
 static HANDLE thread;
 static DWORD thread_id;
 
-static HHOOK kbd_hook = 0;
-static HHOOK msg_hook = 0;
+static HHOOK kbd_hook = nullptr;
+static HHOOK msg_hook = nullptr;
 static BYTE kbd_state[256];
-static HWND target_wnd = 0;
+static HWND target_wnd = nullptr;
 
 static LRESULT CALLBACK keyboard_hook(int nCode, WPARAM wParam, LPARAM lParam)
 {
@@ -160,7 +160,7 @@ static DWORD WINAPI keyboard_thread(LPVOID data)
   // We need to know which keys are currently pressed
   GetKeyboardState(kbd_state);
 
-  kbd_hook = SetWindowsHookEx(WH_KEYBOARD_LL, keyboard_hook, GetModuleHandle(0), 0);
+  kbd_hook = SetWindowsHookEx(WH_KEYBOARD_LL, keyboard_hook, GetModuleHandle(nullptr), 0);
 
   // If something goes wrong then there is not much we can do.
   // Just sit around and wait for WM_QUIT...
@@ -170,7 +170,7 @@ static DWORD WINAPI keyboard_thread(LPVOID data)
   if (kbd_hook)
     UnhookWindowsHookEx(kbd_hook);
 
-  target_wnd = 0;
+  target_wnd = nullptr;
 
   return 0;
 }
@@ -191,7 +191,7 @@ int win32_enable_lowlevel_keyboard(HWND hwnd)
   if (thread == NULL)
     return 1;
 
-  msg_hook = SetWindowsHookEx(WH_GETMESSAGE, message_hook, 0, GetCurrentThreadId());
+  msg_hook = SetWindowsHookEx(WH_GETMESSAGE, message_hook, nullptr, GetCurrentThreadId());
   if (msg_hook == NULL) {
     win32_disable_lowlevel_keyboard(hwnd);
     return 1;

@@ -40,7 +40,7 @@ if(WIN32)
 endif()
 
 if(WIN32)
-  target_sources(vncviewer PRIVATE Win32TouchHandler.cxx win32.c)
+  target_sources(vncviewer PRIVATE Win32TouchHandler.cxx win32.cxx)
   target_sources(vncviewer PRIVATE KeyboardWin32.cxx keysym2ucs.c)
   target_sources(vncviewer PRIVATE Surface_Win32.cxx)
 elseif(APPLE)
