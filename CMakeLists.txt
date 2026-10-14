@@ -139,7 +139,7 @@ endmacro()
 
 # X11 stuff. It's in a if() so that we can say REQUIRED
 if(UNIX AND NOT APPLE)
-  find_package(X11 REQUIRED)
+  find_package(X11 COMPONENTS Xext REQUIRED)
   if(X11_Xdamage_LIB)
     set(HAVE_XDAMAGE 1)
   endif()
