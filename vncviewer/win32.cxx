@@ -220,3 +220,28 @@ void win32_disable_lowlevel_keyboard(Fl_Window* win)
     UnhookWindowsHookEx(msg_hook);
   msg_hook = NULL;
 }
+
+void win32_win_maximize(Fl_Window* win)
+{
+  // We cannot use ShowWindow() in full screen mode as it will
+  // resize things implicitly. Fortunately modifying the style
+  // directly results in a maximized state once we leave full screen.
+  if (win->fullscreen_active()) {
+    WINDOWINFO wi;
+    wi.cbSize = sizeof(WINDOWINFO);
+    GetWindowInfo(fl_xid(win), &wi);
+    SetWindowLongPtr(fl_xid(win), GWL_STYLE, wi.dwStyle | WS_MAXIMIZE);
+  } else
+    ShowWindow(fl_xid(win), SW_MAXIMIZE);
+}
+
+bool win32_win_is_maximized(Fl_Window* win)
+{
+  WINDOWPLACEMENT wndpl;
+  memset(&wndpl, 0, sizeof(WINDOWPLACEMENT));
+  wndpl.length = sizeof(WINDOWPLACEMENT);
+  GetWindowPlacement(fl_xid(win), &wndpl);
+  if (wndpl.showCmd == SW_SHOWMAXIMIZED)
+    return true;
+  return false;
+}

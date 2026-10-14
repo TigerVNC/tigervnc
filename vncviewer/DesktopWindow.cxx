@@ -52,7 +52,6 @@
 #include <FL/Fl_Image_Surface.H>
 #include <FL/Fl_Scrollbar.H>
 #include <FL/fl_draw.H>
-#include <FL/x.H>
 
 #if defined(WIN32)
 #include "win32.h"
@@ -360,11 +359,7 @@ void DesktopWindow::resizeFramebuffer(int new_w, int new_h)
   maximized = false;
 
 #ifdef WIN32
-  WINDOWPLACEMENT wndpl;
-  memset(&wndpl, 0, sizeof(WINDOWPLACEMENT));
-  wndpl.length = sizeof(WINDOWPLACEMENT);
-  GetWindowPlacement(fl_xid(this), &wndpl);
-  if (wndpl.showCmd == SW_SHOWMAXIMIZED)
+  if (win32_win_is_maximized(this))
     maximized = true;
 #elif defined(__APPLE__)
   if (cocoa_win_is_zoomed(this))
@@ -1228,16 +1223,7 @@ void DesktopWindow::ungrabPointer()
 void DesktopWindow::maximizeWindow()
 {
 #if defined(WIN32)
-  // We cannot use ShowWindow() in full screen mode as it will
-  // resize things implicitly. Fortunately modifying the style
-  // directly results in a maximized state once we leave full screen.
-  if (fullscreen_active()) {
-    WINDOWINFO wi;
-    wi.cbSize = sizeof(WINDOWINFO);
-    GetWindowInfo(fl_xid(this), &wi);
-    SetWindowLongPtr(fl_xid(this), GWL_STYLE, wi.dwStyle | WS_MAXIMIZE);
-  } else
-    ShowWindow(fl_xid(this), SW_MAXIMIZE);
+  win32_win_maximize(this);
 #elif defined(__APPLE__)
   if (fullscreen_active())
     return;
