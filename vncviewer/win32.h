@@ -30,4 +30,7 @@ class Fl_Window;
 int win32_enable_lowlevel_keyboard(Fl_Window* win);
 void win32_disable_lowlevel_keyboard(Fl_Window* win);
 
+void win32_win_maximize(Fl_Window* win);
+bool win32_win_is_maximized(Fl_Window* win);
+
 #endif
