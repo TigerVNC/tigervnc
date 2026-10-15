@@ -964,7 +964,7 @@ int DesktopWindow::fltkDispatch(int event, Fl_Window *win, void *)
     case FL_SHOW:
       // In this particular place, FL_SHOW means an actual MapNotify,
       // which means we can continue enabling initial fullscreen.
-      if (dw->delayedFullscreen) {
+      if (dw->delayedFullscreen && !dw->fullscreen_active()) {
         // Hack: Fullscreen requests may be ignored, so we need a
         // timeout for when we should stop waiting. We also need to wait
         // for the resize, which can come after the fullscreen event.
