@@ -130,7 +130,7 @@ ServerDialog::~ServerDialog()
 }
 
 
-void ServerDialog::run(const char* servername, char *newservername)
+std::string ServerDialog::run(const char* servername)
 {
   ServerDialog dialog;
 
@@ -148,12 +148,10 @@ void ServerDialog::run(const char* servername, char *newservername)
   while (dialog.shown()) Fl::wait();
 
   if (dialog.serverName->value() == nullptr) {
-    newservername[0] = '\0';
-    return;
+    return "";
   }
 
-  strncpy(newservername, dialog.serverName->value(), VNCSERVERNAMELEN);
-  newservername[VNCSERVERNAMELEN - 1] = '\0';
+  return dialog.serverName->value();
 }
 
 void ServerDialog::handleOptions(Fl_Widget* /*widget*/, void* /*data*/)
@@ -171,7 +169,8 @@ void ServerDialog::handleLoad(Fl_Widget* /*widget*/, void* data)
 
   Fl_File_Chooser* file_chooser = new Fl_File_Chooser(dialog->usedDir.c_str(),
                                                       _("TigerVNC configuration (*.tigervnc)"),
-                                                      0, _("Select a TigerVNC configuration file"));
+                                                      Fl_File_Chooser::SINGLE,
+                                                      _("Select a TigerVNC configuration file"));
   file_chooser->preview(0);
   file_chooser->previewButton->hide();
   file_chooser->show();
@@ -190,7 +189,7 @@ void ServerDialog::handleLoad(Fl_Widget* /*widget*/, void* data)
   dialog->updateUsedDir(filename);
 
   try {
-    dialog->serverName->value(loadViewerParameters(filename));
+    dialog->serverName->value(loadViewerParameters(filename).c_str());
   } catch (std::exception& e) {
     vlog.error("%s", e.what());
     fl_alert(_("Unable to load the specified configuration file:\n\n%s"),
@@ -211,7 +210,8 @@ void ServerDialog::handleSaveAs(Fl_Widget* /*widget*/, void* data)
   
   Fl_File_Chooser* file_chooser = new Fl_File_Chooser(dialog->usedDir.c_str(),
                                                       _("TigerVNC configuration (*.tigervnc)"),
-                                                      2, _("Save the TigerVNC configuration to file"));
+                                                      Fl_File_Chooser::CREATE,
+                                                      _("Save the TigerVNC configuration to file"));
   
   file_chooser->preview(0);
   file_chooser->previewButton->hide();
@@ -238,8 +238,8 @@ void ServerDialog::handleSaveAs(Fl_Widget* /*widget*/, void* data)
       // The file already exists.
       fclose(f);
       int overwrite_choice = fl_choice(_("%s already exists. Do you want to overwrite?"), 
-                                       _("Overwrite"), _("No"), nullptr, filename);
-      if (overwrite_choice == 1) {
+                                       nullptr, _("No"), _("Overwrite"), filename);
+      if (overwrite_choice != 2) {
 
         // If the user doesn't want to overwrite:
         file_chooser->show();

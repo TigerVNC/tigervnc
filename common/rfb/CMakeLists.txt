@@ -15,6 +15,7 @@ add_library(rfb STATIC
   KeysymStr.c
   PixelBuffer.cxx
   PixelFormat.cxx
+  ScreenSet.cxx
   Security.cxx
   UpdateTracker.cxx
   encodings.cxx
@@ -22,8 +23,8 @@ add_library(rfb STATIC
 
 target_include_directories(rfb PUBLIC ${CMAKE_SOURCE_DIR}/common)
 target_include_directories(rfb SYSTEM PUBLIC ${JPEG_INCLUDE_DIR})
-target_link_libraries(rfb core rdr)
-target_link_libraries(rfb ${JPEG_LIBRARIES})
+target_link_libraries(rfb PRIVATE core rdr)
+target_link_libraries(rfb PRIVATE ${JPEG_LIBRARIES})
 
 add_library(rfbserver STATIC
   ClientParams.cxx
@@ -49,7 +50,7 @@ add_library(rfbserver STATIC
   ZRLEEncoder.cxx)
 
 target_include_directories(rfbserver PUBLIC ${CMAKE_SOURCE_DIR}/common)
-target_link_libraries(rfbserver core rdr network rfb)
+target_link_libraries(rfbserver PRIVATE core rdr network rfb)
 
 add_library(rfbclient STATIC
   CConnection.cxx
@@ -72,16 +73,16 @@ add_library(rfbclient STATIC
   ZRLEDecoder.cxx)
 
 target_include_directories(rfbclient PUBLIC ${CMAKE_SOURCE_DIR}/common)
-target_link_libraries(rfbclient core rdr rfb)
+target_link_libraries(rfbclient PRIVATE core rdr rfb)
 
 # libstdc++ doesn't implicitly include this, although it is very much
 # required when using any of the C++ threading features (at least on
 # systems where pthread is a separate library, e.g. glibc < 2.34)
 if(UNIX)
-  target_link_libraries(rfbclient pthread)
+  target_link_libraries(rfbclient PRIVATE pthread)
 endif()
 
-if(ENABLE_H264)
+if(HAVE_H264)
   target_sources(rfbclient PRIVATE
                  H264Decoder.cxx H264DecoderContext.cxx)
   if (AVCODEC_FOUND AND AVUTIL_FOUND AND SWSCALE_FOUND)
@@ -90,15 +91,15 @@ if(ENABLE_H264)
                                ${AVCODEC_INCLUDE_DIRS}
                                ${AVUTIL_INCLUDE_DIRS}
                                ${SWSCALE_INCLUDE_DIRS})
-    target_link_libraries(rfbclient ${AVCODEC_LIBRARIES}
+    target_link_libraries(rfbclient PRIVATE ${AVCODEC_LIBRARIES}
                           ${AVUTIL_LIBRARIES} ${SWSCALE_LIBRARIES})
   endif()
   if(WIN32)
     target_sources(rfbclient PRIVATE H264WinDecoderContext.cxx)
-    target_link_libraries(rfbclient ole32 mfplat mfuuid wmcodecdspuuid)
+    target_link_libraries(rfbclient PRIVATE ole32 mfplat mfuuid wmcodecdspuuid)
   endif()
   target_include_directories(rfbclient SYSTEM PUBLIC ${H264_INCLUDE_DIRS})
-  target_link_libraries(rfbclient ${H264_LIBRARIES})
+  target_link_libraries(rfbclient PRIVATE ${H264_LIBRARIES})
 endif()
 
 if(WIN32)
@@ -109,7 +110,7 @@ endif(WIN32)
 if(PAM_FOUND)
   target_sources(rfbserver PRIVATE UnixPasswordValidator.cxx)
   target_include_directories(rfbserver SYSTEM PRIVATE ${PAM_INCLUDE_DIRS})
-  target_link_libraries(rfbserver ${PAM_LIBRARIES})
+  target_link_libraries(rfbserver PRIVATE ${PAM_LIBRARIES})
 endif()
 
 if(GNUTLS_FOUND)
@@ -117,8 +118,8 @@ if(GNUTLS_FOUND)
   target_sources(rfbclient PRIVATE CSecurityTLS.cxx)
   target_include_directories(rfbserver SYSTEM PUBLIC ${GNUTLS_INCLUDE_DIR})
   target_include_directories(rfbclient SYSTEM PUBLIC ${GNUTLS_INCLUDE_DIR})
-  target_link_libraries(rfbserver ${GNUTLS_LIBRARIES})
-  target_link_libraries(rfbclient ${GNUTLS_LIBRARIES})
+  target_link_libraries(rfbserver PRIVATE ${GNUTLS_LIBRARIES})
+  target_link_libraries(rfbclient PRIVATE ${GNUTLS_LIBRARIES})
   # FIXME: Hack to block it marking gnutls_free() as dllimport
   if(WIN32 AND BUILD_STATIC)
     target_compile_definitions(rfbserver PRIVATE GNUTLS_INTERNAL_BUILD)
@@ -132,8 +133,8 @@ if (NETTLE_FOUND)
                  CSecurityMSLogonII.cxx CSecurityRSAAES.cxx)
   target_include_directories(rfbserver SYSTEM PUBLIC ${NETTLE_INCLUDE_DIRS})
   target_include_directories(rfbclient SYSTEM PUBLIC ${NETTLE_INCLUDE_DIRS})
-  target_link_libraries(rfbserver ${HOGWEED_LIBRARIES} ${NETTLE_LIBRARIES})
-  target_link_libraries(rfbclient ${HOGWEED_LIBRARIES} ${NETTLE_LIBRARIES})
+  target_link_libraries(rfbserver PRIVATE ${HOGWEED_LIBRARIES} ${NETTLE_LIBRARIES})
+  target_link_libraries(rfbclient PRIVATE ${HOGWEED_LIBRARIES} ${NETTLE_LIBRARIES})
 endif()
 
 if(UNIX)

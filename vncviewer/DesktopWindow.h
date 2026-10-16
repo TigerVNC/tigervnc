@@ -44,9 +44,6 @@ public:
   DesktopWindow(int w, int h, CConn* cc_);
   ~DesktopWindow();
 
-  // Most efficient format (from DesktopWindow's point of view)
-  const rfb::PixelFormat &getPreferredPF();
-
   // Flush updates to screen
   void updateWindow();
 

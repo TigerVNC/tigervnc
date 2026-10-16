@@ -23,15 +23,17 @@
 
 #include <windows.h>
 
+#include <FL/x.H>
+
 #include "win32.h"
 
 static HANDLE thread;
 static DWORD thread_id;
 
-static HHOOK kbd_hook = 0;
-static HHOOK msg_hook = 0;
+static HHOOK kbd_hook = nullptr;
+static HHOOK msg_hook = nullptr;
 static BYTE kbd_state[256];
-static HWND target_wnd = 0;
+static HWND target_wnd = nullptr;
 
 static LRESULT CALLBACK keyboard_hook(int nCode, WPARAM wParam, LPARAM lParam)
 {
@@ -160,7 +162,7 @@ static DWORD WINAPI keyboard_thread(LPVOID data)
   // We need to know which keys are currently pressed
   GetKeyboardState(kbd_state);
 
-  kbd_hook = SetWindowsHookEx(WH_KEYBOARD_LL, keyboard_hook, GetModuleHandle(0), 0);
+  kbd_hook = SetWindowsHookEx(WH_KEYBOARD_LL, keyboard_hook, GetModuleHandle(nullptr), 0);
 
   // If something goes wrong then there is not much we can do.
   // Just sit around and wait for WM_QUIT...
@@ -170,13 +172,17 @@ static DWORD WINAPI keyboard_thread(LPVOID data)
   if (kbd_hook)
     UnhookWindowsHookEx(kbd_hook);
 
-  target_wnd = 0;
+  target_wnd = nullptr;
 
   return 0;
 }
 
-int win32_enable_lowlevel_keyboard(HWND hwnd)
+int win32_enable_lowlevel_keyboard(Fl_Window* win)
 {
+  HWND hwnd;
+
+  hwnd = fl_xid(win);
+
   // Only one target at a time for now
   if (thread != NULL) {
     if (hwnd == target_wnd)
@@ -191,18 +197,18 @@ int win32_enable_lowlevel_keyboard(HWND hwnd)
   if (thread == NULL)
     return 1;
 
-  msg_hook = SetWindowsHookEx(WH_GETMESSAGE, message_hook, 0, GetCurrentThreadId());
+  msg_hook = SetWindowsHookEx(WH_GETMESSAGE, message_hook, nullptr, GetCurrentThreadId());
   if (msg_hook == NULL) {
-    win32_disable_lowlevel_keyboard(hwnd);
+    win32_disable_lowlevel_keyboard(win);
     return 1;
   }
 
   return 0;
 }
 
-void win32_disable_lowlevel_keyboard(HWND hwnd)
+void win32_disable_lowlevel_keyboard(Fl_Window* win)
 {
-  if (hwnd != target_wnd)
+  if (fl_xid(win) != target_wnd)
     return;
 
   PostThreadMessage(thread_id, WM_QUIT, 0, 0);
@@ -213,4 +219,29 @@ void win32_disable_lowlevel_keyboard(HWND hwnd)
   if (msg_hook)
     UnhookWindowsHookEx(msg_hook);
   msg_hook = NULL;
+}
+
+void win32_win_maximize(Fl_Window* win)
+{
+  // We cannot use ShowWindow() in full screen mode as it will
+  // resize things implicitly. Fortunately modifying the style
+  // directly results in a maximized state once we leave full screen.
+  if (win->fullscreen_active()) {
+    WINDOWINFO wi;
+    wi.cbSize = sizeof(WINDOWINFO);
+    GetWindowInfo(fl_xid(win), &wi);
+    SetWindowLongPtr(fl_xid(win), GWL_STYLE, wi.dwStyle | WS_MAXIMIZE);
+  } else
+    ShowWindow(fl_xid(win), SW_MAXIMIZE);
+}
+
+bool win32_win_is_maximized(Fl_Window* win)
+{
+  WINDOWPLACEMENT wndpl;
+  memset(&wndpl, 0, sizeof(WINDOWPLACEMENT));
+  wndpl.length = sizeof(WINDOWPLACEMENT);
+  GetWindowPlacement(fl_xid(win), &wndpl);
+  if (wndpl.showCmd == SW_SHOWMAXIMIZED)
+    return true;
+  return false;
 }

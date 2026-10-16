@@ -43,9 +43,6 @@ public:
   Viewport(int w, int h, CConn* cc_);
   ~Viewport();
 
-  // Most efficient format (from Viewport's point of view)
-  const rfb::PixelFormat &getPreferredPF();
-
   // Flush updates to screen
   void updateWindow();
 

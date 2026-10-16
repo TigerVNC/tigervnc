@@ -54,7 +54,7 @@
 
 namespace core {
 
-  class VoidParameter;
+  class Parameter;
 
   // -=- Configuration
   //     Class used to access parameters.
@@ -68,7 +68,7 @@ namespace core {
     bool set(const char* param, const char* value, bool immutable=false);
 
     // - Get named parameter
-    VoidParameter* get(const char* param);
+    Parameter* get(const char* param);
 
     // - List the parameters of this Configuration group
     void list(int width=79, int nameWidth=10);
@@ -83,8 +83,8 @@ namespace core {
 
 
     // - Iterate over all parameters
-    std::list<VoidParameter*>::iterator begin() { return params.begin(); }
-    std::list<VoidParameter*>::iterator end() { return params.end(); }
+    std::list<Parameter*>::iterator begin() { return params.begin(); }
+    std::list<Parameter*>::iterator end() { return params.end(); }
 
     // - Returns the number of parameters
     int size() { return params.size(); }
@@ -100,7 +100,7 @@ namespace core {
     static bool setParam(const char* param, const char* value, bool immutable=false) {
       return global()->set(param, value, immutable);
     }
-    static VoidParameter* getParam(const char* param) { return global()->get(param); }
+    static Parameter* getParam(const char* param) { return global()->get(param); }
     static void listParams(int width=79, int nameWidth=10) {
       global()->list(width, nameWidth);
     }
@@ -112,22 +112,24 @@ namespace core {
     }
 
   private:
-    friend class VoidParameter;
+    friend class Parameter;
 
     // - List of Parameters
-    std::list<VoidParameter*> params;
+    std::list<Parameter*> params;
 
     // The process-wide, Global Configuration object
     static Configuration* global_;
   };
 
-  // -=- VoidParameter
+  // -=- Parameter
   //     Configuration parameter base-class.
 
-  class VoidParameter {
+  class Parameter {
+  protected:
+    Parameter(const char* name_, const char* desc_);
+
   public:
-    VoidParameter(const char* name_, const char* desc_);
-    virtual  ~VoidParameter();
+    virtual  ~Parameter();
     const char* getName() const;
     const char* getDescription() const;
 
@@ -143,25 +145,25 @@ namespace core {
   protected:
     friend class Configuration;
 
-    VoidParameter* _next;
+    Parameter* _next;
     bool immutable;
     std::string name;
     std::string description;
   };
 
-  class AliasParameter : public VoidParameter {
+  class AliasParameter : public Parameter {
   public:
-    AliasParameter(const char* name_, VoidParameter* param_);
+    AliasParameter(const char* name_, Parameter* param_);
     bool setParam(const char* value) override;
     bool setParam() override;
     std::string getDefaultStr() const override;
     std::string getValueStr() const override;
     void setImmutable() override;
   private:
-    VoidParameter* param;
+    Parameter* param;
   };
 
-  class BoolParameter : public VoidParameter {
+  class BoolParameter : public Parameter {
   public:
     BoolParameter(const char* name_, const char* desc_, bool v);
     bool setParam(const char* value) override;
@@ -175,11 +177,11 @@ namespace core {
     bool def_value;
   };
 
-  class IntParameter : public VoidParameter {
+  class IntParameter : public Parameter {
   public:
     IntParameter(const char* name_, const char* desc_, int v,
                  int minValue=INT_MIN, int maxValue=INT_MAX);
-    using VoidParameter::setParam;
+    using Parameter::setParam;
     bool setParam(const char* value) override;
     virtual bool setParam(int v);
     std::string getDefaultStr() const override;
@@ -191,9 +193,10 @@ namespace core {
     int minValue, maxValue;
   };
 
-  class StringParameter : public VoidParameter {
+  class StringParameter : public Parameter {
   public:
     StringParameter(const char* name_, const char* desc_, const char* v);
+    using Parameter::setParam;
     bool setParam(const char* value) override;
     std::string getDefaultStr() const override;
     std::string getValueStr() const override;
@@ -203,10 +206,11 @@ namespace core {
     std::string def_value;
   };
 
-  class EnumParameter : public VoidParameter {
+  class EnumParameter : public Parameter {
   public:
     EnumParameter(const char* name_, const char* desc_,
                   const std::set<const char*>& enums, const char* v);
+    using Parameter::setParam;
     bool setParam(const char* value) override;
     std::string getDefaultStr() const override;
     std::string getValueStr() const override;
@@ -222,11 +226,11 @@ namespace core {
     std::set<std::string> enums;
   };
 
-  class BinaryParameter : public VoidParameter {
+  class BinaryParameter : public Parameter {
   public:
     BinaryParameter(const char* name_, const char* desc_,
                     const uint8_t* v, size_t l);
-    using VoidParameter::setParam;
+    using Parameter::setParam;
     ~BinaryParameter() override;
     bool setParam(const char* value) override;
     virtual void setParam(const uint8_t* v, size_t l);
@@ -243,14 +247,14 @@ namespace core {
   };
 
   template<typename ValueType>
-  class ListParameter : public VoidParameter {
+  class ListParameter : public Parameter {
   public:
     typedef std::list<ValueType> ListType;
     typedef typename ListType::const_iterator const_iterator;
 
     ListParameter(const char* name_, const char* desc_,
                   const ListType& v);
-    using VoidParameter::setParam;
+    using Parameter::setParam;
     bool setParam(const char* value) override;
     virtual bool setParam(const ListType& v);
     std::string getDefaultStr() const override;

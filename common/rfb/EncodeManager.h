@@ -32,6 +32,7 @@
 namespace rfb {
 
   class SConnection;
+  class SMsgWriter;
   class Encoder;
   class UpdateInfo;
   class PixelBuffer;
@@ -120,6 +121,7 @@ namespace rfb {
 
   protected:
     SConnection *conn;
+    SMsgWriter *writer;
 
     std::vector<Encoder*> encoders;
     std::vector<int> activeEncoders;

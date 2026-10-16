@@ -27,6 +27,8 @@
 #include <core/LogWriter.h>
 #include <core/i18n.h>
 
+#include <rfb/SConnection.h>
+
 #include <rfb_win32/Win32Util.h>
 #include <rfb_win32/Service.h>
 
@@ -46,13 +48,10 @@ static IntParameter timeout("QueryConnectTimeout",
 
 // - Visible methods
 
-QueryConnectDialog::QueryConnectDialog(network::Socket* sock_,
-                                       const char* userName_,
+QueryConnectDialog::QueryConnectDialog(rfb::SConnection* conn_,
                                        VNCServerWin32* s)
 : Dialog(GetModuleHandle(nullptr)),
-  thread(nullptr), sock(sock_), peerIp(sock->getPeerAddress()),
-  userName(userName_?userName_:""),
-  approve(false), server(s) {
+  thread(nullptr), conn(conn_), approve(false), server(s) {
 }
 
 QueryConnectDialog::~QueryConnectDialog()
@@ -87,12 +86,14 @@ void QueryConnectDialog::worker() {
 // - Dialog overrides
 
 void QueryConnectDialog::initDialog() {
+  const char* userName;
   if (!SetTimer(handle, 1, 1000, nullptr))
     throw core::win32_error("SetTimer", GetLastError());
-  setItemString(IDC_QUERY_HOST, peerIp.c_str());
-  if (userName.empty())
+  setItemString(IDC_QUERY_HOST, conn->getSock()->getPeerAddress());
+  userName = conn->getUserName();
+  if (userName[0] == '\0')
     userName = _("(anonymous)");
-  setItemString(IDC_QUERY_USER, userName.c_str());
+  setItemString(IDC_QUERY_USER, userName);
   setCountdownLabel();
 }
 

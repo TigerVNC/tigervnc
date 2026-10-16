@@ -61,11 +61,11 @@ bool SSecurityStack::processMsg()
 
 const char* SSecurityStack::getUserName() const
 {
-  const char* c = nullptr;
+  const char* c = "";
 
-  if (state1 && !c)
+  if (state1 && c[0] == '\0')
     c = state1->getUserName();
-  if (state0 && !c)
+  if (state0 && c[0] == '\0')
     c = state0->getUserName();
 
   return c;

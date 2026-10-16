@@ -55,19 +55,14 @@
 
 using namespace rfb;
 
-// Number of seconds allowed for authentication
-static const unsigned LOGIN_GRACE_TIME = 120;
-// Number of seconds allowed to flush a closing socket
-static const unsigned CLOSE_GRACE_TIME = 5;
-
 static core::LogWriter vlog("VNCSConnST");
 
 static Cursor emptyCursor(0, 0, {0, 0}, nullptr);
 
 VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket *s,
                                    bool reverse, AccessRights ar)
-  : SConnection(ar),
-    sock(s), socketTimer(this), reverseConnection(reverse),
+  : SConnection(s, ar),
+    reverseConnection(reverse),
     inProcessMessages(false),
     pendingSyncFence(false), syncFence(false), fenceFlags(0),
     fenceDataLen(0), fenceData(nullptr), congestionTimer(this),
@@ -76,10 +71,6 @@ VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket *s,
     continuousUpdates(false), encodeManager(this), idleTimer(this),
     pointerEventTime(0), clientHasCursor(false)
 {
-  socketTimer.start(core::secsToMillis(LOGIN_GRACE_TIME));
-
-  setStreams(&sock->inStream(), &sock->outStream());
-  peerEndpoint = sock->getPeerEndpoint();
 }
 
 
@@ -87,7 +78,7 @@ VNCSConnectionST::~VNCSConnectionST()
 {
   // If we reach here then VNCServerST is deleting us!
   if (!closeReason.empty())
-    vlog.info(_("Closing %s: %s"), peerEndpoint.c_str(),
+    vlog.info(_("Closing %s: %s"), getPeerEndpoint(),
               closeReason.c_str());
 
   // Release any keys the client still had pressed
@@ -121,19 +112,16 @@ bool VNCSConnectionST::accessCheck(AccessRights ar) const
 
 void VNCSConnectionST::close(const char* reason)
 {
+  // Just shutdown the socket and mark our state as closing.  Eventually the
+  // calling code will call VNCServerST's removeSocket() method causing us to
+  // be deleted.
   SConnection::close(reason);
 
   // Log the reason for the close
   if (closeReason.empty())
     closeReason = reason;
   else
-    vlog.debug("Second close: %s (%s)", peerEndpoint.c_str(), reason);
-
-  // Just shutdown the socket and mark our state as closing.  Eventually the
-  // calling code will call VNCServerST's removeSocket() method causing us to
-  // be deleted.
-  sock->shutdownWrite();
-  socketTimer.start(core::secsToMillis(CLOSE_GRACE_TIME));
+    vlog.debug("Second close: %s (%s)", getPeerEndpoint(), reason);
 }
 
 
@@ -219,10 +207,10 @@ void VNCSConnectionST::processSocketWriteEvent()
 {
   if (state() == RFBSTATE_CLOSING) return;
   try {
-    sock->outStream().flush();
+    getSock()->outStream().flush();
     // Flushing the socket might release an update that was previously
     // delayed because of congestion.
-    if (!sock->outStream().hasBufferedData())
+    if (!getSock()->outStream().hasBufferedData())
       writeFramebufferUpdate();
   } catch (std::exception& e) {
     close(e.what());
@@ -479,15 +467,13 @@ void VNCSConnectionST::approveConnectionOrClose(bool accept,
 
 void VNCSConnectionST::authSuccess()
 {
-  socketTimer.stop();
-
   if (rfb::Server::idleTimeout)
     idleTimer.start(core::secsToMillis(rfb::Server::idleTimeout));
 }
 
-void VNCSConnectionST::queryConnection(const char* userName)
+void VNCSConnectionST::queryConnection()
 {
-  server->queryConnection(this, userName);
+  server->queryConnection(this);
 }
 
 void VNCSConnectionST::clientReady(bool shared)
@@ -702,12 +688,10 @@ void VNCSConnectionST::setDesktopSize(int fb_width, int fb_height,
                                       const ScreenSet& layout)
 {
   unsigned int result;
-  char buffer[2048];
 
   vlog.debug("Got request for framebuffer resize to %dx%d",
              fb_width, fb_height);
-  layout.print(buffer, sizeof(buffer));
-  vlog.debug("%s", buffer);
+  vlog.debug("%s", layout.print().c_str());
 
   if (!accessCheck(AccessSetDesktopSize)) {
     vlog.debug("Rejecting unauthorized framebuffer resize request");
@@ -843,13 +827,6 @@ void VNCSConnectionST::supportsLEDState()
 
 void VNCSConnectionST::handleTimeout(core::Timer* t)
 {
-  if (t == &socketTimer) {
-    if (state() == RFBSTATE_CLOSING)
-      getSock()->shutdownRead();
-    else
-      close(_("Authentication timeout"));
-  }
-
   try {
     if ((t == &congestionTimer) ||
         (t == &losslessTimer))
@@ -883,7 +860,7 @@ void VNCSConnectionST::writeRTTPing()
   if (!client.supportsFence())
     return;
 
-  congestion.updatePosition(sock->outStream().length());
+  congestion.updatePosition(getSock()->outStream().length());
 
   // We need to make sure any old update are already processed by the
   // time we get the response back. This allows us to reliably throttle
@@ -902,15 +879,15 @@ bool VNCSConnectionST::isCongested()
   congestionTimer.stop();
 
   // Stuff still waiting in the send buffer?
-  sock->outStream().flush();
-  congestion.debugTrace("congestion-trace.csv", sock->getFd());
-  if (sock->outStream().hasBufferedData())
+  getSock()->outStream().flush();
+  congestion.debugTrace("congestion-trace.csv", getSock()->getFd());
+  if (getSock()->outStream().hasBufferedData())
     return true;
 
   if (!client.supportsFence())
     return false;
 
-  congestion.updatePosition(sock->outStream().length());
+  congestion.updatePosition(getSock()->outStream().length());
   if (!congestion.isCongested())
     return false;
 
@@ -924,7 +901,7 @@ bool VNCSConnectionST::isCongested()
 
 void VNCSConnectionST::writeFramebufferUpdate()
 {
-  congestion.updatePosition(sock->outStream().length());
+  congestion.updatePosition(getSock()->outStream().length());
 
   // We're in the middle of processing a command that's supposed to be
   // synchronised. Allowing an update to slip out right now might violate
@@ -963,7 +940,7 @@ void VNCSConnectionST::writeFramebufferUpdate()
 
   getOutStream()->cork(false);
 
-  congestion.updatePosition(sock->outStream().length());
+  congestion.updatePosition(getSock()->outStream().length());
 }
 
 void VNCSConnectionST::writeNoDataUpdate()

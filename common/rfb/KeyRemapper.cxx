@@ -68,6 +68,7 @@ public:
                                 {}) {
     KeyRemapper::defInstance.setMapping({});
   }
+  using StringListParameter::setParam;
   bool setParam(const char* v) override {
     std::map<uint32_t,uint32_t> mapping;
 

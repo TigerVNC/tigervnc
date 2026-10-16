@@ -95,8 +95,7 @@ public:
   // rfb::SDesktop callbacks
   void init(rfb::VNCServer* vs) override;
   void terminate() override;
-  void queryConnection(network::Socket* sock,
-                       const char* userName) override;
+  void queryConnection(rfb::SConnection* conn) override;
   void pointerEvent(const core::Point& pos,
                     uint16_t buttonMask) override;
   void keyEvent(uint32_t keysym, uint32_t keycode, bool down) override;
@@ -123,10 +122,7 @@ private:
   std::list<network::SocketListener*> listeners;
   uint8_t* shadowFramebuffer;
 
-  uint32_t queryConnectId;
-  network::Socket* queryConnectSocket;
-  std::string queryConnectAddress;
-  std::string queryConnectUsername;
+  rfb::SConnection* pendingQuery;
   core::Timer queryConnectTimer;
 
   OutputIdMap outputIdMap;

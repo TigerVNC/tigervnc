@@ -141,7 +141,7 @@ static const char *encoderTypeName(EncoderType type)
 }
 
 EncodeManager::EncodeManager(SConnection* conn_)
-  : conn(conn_), recentChangeTimer(this)
+  : conn(conn_), writer(nullptr), recentChangeTimer(this)
 {
   StatsVector::iterator iter;
 
@@ -173,6 +173,9 @@ EncodeManager::~EncodeManager()
 
   for (Encoder* encoder : encoders)
     delete encoder;
+
+  // Should be deleted by now, but can be left set on fatal errors
+  delete writer;
 }
 
 void EncodeManager::logStats()
@@ -351,6 +354,10 @@ void EncodeManager::doUpdate(bool allowLossy, const
 
     updates++;
 
+    delete writer;
+    writer = nullptr;
+    writer = new SMsgWriter(&conn->client, conn->getOutStream());
+
     prepareEncoders(allowLossy);
 
     changed = changed_;
@@ -377,7 +384,7 @@ void EncodeManager::doUpdate(bool allowLossy, const
       nRects += computeNumRects(cursorRegion);
     }
 
-    conn->writer()->writeFramebufferUpdateStart(nRects);
+    writer->writeFramebufferUpdateStart(nRects);
 
     if (conn->client.supportsEncoding(encodingCopyRect))
       writeCopyRects(copied, copyDelta);
@@ -392,7 +399,10 @@ void EncodeManager::doUpdate(bool allowLossy, const
     writeRects(changed, pb);
     writeRects(cursorRegion, renderedCursor);
 
-    conn->writer()->writeFramebufferUpdateEnd();
+    writer->writeFramebufferUpdateEnd();
+
+    delete writer;
+    writer = nullptr;
 }
 
 void EncodeManager::prepareEncoders(bool allowLossy)
@@ -651,7 +661,7 @@ Encoder* EncodeManager::startRect(const core::Rect& rect, int type)
   stats[klass][activeType].equivalent += equiv;
 
   encoder = encoders[klass];
-  conn->writer()->startRect(rect, encoder->encoding);
+  writer->startRect(rect, encoder->encoding);
 
   if ((encoder->flags & EncoderLossy) &&
       ((encoder->losslessQuality == -1) ||
@@ -672,7 +682,7 @@ void EncodeManager::endRect()
   int klass;
   int length;
 
-  conn->writer()->endRect();
+  writer->endRect();
 
   length = conn->getOutStream()->length() - beforeLength;
 
@@ -699,7 +709,7 @@ void EncodeManager::writeCopyRects(const core::Region& copied,
     equiv = 12 + rect->area() * (conn->client.pf().bpp/8);
     copyStats.equivalent += equiv;
 
-    conn->writer()->writeCopyRect(*rect, rect->tl.x - delta.x,
+    writer->writeCopyRect(*rect, rect->tl.x - delta.x,
                                    rect->tl.y - delta.y);
   }
 

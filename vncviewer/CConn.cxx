@@ -73,10 +73,6 @@
 std::string CConn::savedUsername;
 std::string CConn::savedPassword;
 
-#ifdef WIN32
-#include "win32.h"
-#endif
-
 static core::LogWriter vlog("CConn");
 
 // 8 colours (1 bit per component)
@@ -325,7 +321,7 @@ void CConn::processNextMsg(core::Timer*)
                        "given by the server:\n\n%s"), e.what());
   } catch (std::exception& e) {
     vlog.error("%s", e.what());
-    abort_connection_with_unexpected_error(e);
+    abort_connection_unexpected(e);
   }
 
   recursing = false;
@@ -348,8 +344,7 @@ void CConn::processNextMsg(core::Timer*)
 
 ////////////////////// CConnection callback methods //////////////////////
 
-void CConn::getUserPasswd(bool secure, std::string *user,
-                          std::string *password)
+void CConn::getUserPasswd(std::string *user, std::string *password)
 {
   const char *passwordFileName(passwordFile);
   int ret_val;
@@ -398,7 +393,7 @@ void CConn::getUserPasswd(bool secure, std::string *user,
     return;
   }
 
-  AuthDialog d(secure, user != nullptr, password != nullptr);
+  AuthDialog d(isSecure(), user != nullptr, password != nullptr);
   d.show();
   while (d.shown())
     Fl::wait();
@@ -431,13 +426,7 @@ void CConn::getUserPasswd(bool secure, std::string *user,
 // server the pixel format and encodings to use and request the first update.
 void CConn::initDone()
 {
-  // If using AutoSelect with old servers, start in FullColor
-  // mode. See comment in autoSelectFormatAndEncoding. 
-  if (server.beforeVersion(3, 8) && autoSelect)
-    fullColour.setParam(true);
-
   desktop = new DesktopWindow(server.width(), server.height(), this);
-  fullColourPF = desktop->getPreferredPF();
 
   // Force a switch to the format and encoding we'd like
   updateEncoding();
@@ -1018,20 +1007,11 @@ void CConn::updateQualityLevel()
 void CConn::updatePixelFormat()
 {
   bool useFullColour;
-  rfb::PixelFormat pf;
-
-  if (server.beforeVersion(3, 8)) {
-    // Xvnc from TightVNC 1.2.9 sends out FramebufferUpdates with
-    // cursors "asynchronously". If this happens in the middle of a
-    // pixel format change, the server will encode the cursor with
-    // the old format, but the client will try to decode it
-    // according to the new format. This will lead to a
-    // crash. Therefore, we do not allow automatic format change for
-    // old servers.
-    return;
-  }
+  rfb::PixelFormat pf, fullColourPF;
 
   useFullColour = fullColour;
+
+  fullColourPF = getFramebuffer()->getPF();
 
   // If the bandwidth drops below 256 Kbps, we switch to palette mode.
   if (autoSelect) {
