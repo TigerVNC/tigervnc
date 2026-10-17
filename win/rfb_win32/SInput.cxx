@@ -131,7 +131,7 @@ win32::SPointer::pointerEvent(const Point& pos, uint16_t buttonmask)
     evt.mi.mouseData = data;
     evt.mi.time = 0;
     if (SendInput(1, &evt, sizeof(evt)) != 1)
-      throw core::win32_error("SendInput", GetLastError());
+      vlog.error("SendInput %lu", GetLastError());
   }
 }
 
