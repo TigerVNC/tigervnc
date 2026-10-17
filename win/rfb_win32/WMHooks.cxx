@@ -119,16 +119,19 @@ error:
 
 class WMHooksThread {
 public:
-  WMHooksThread() : active(true), thread(&WMHooksThread::worker, this),
-                    thread_id(-1) { }
+  WMHooksThread() : active(true), thread_id(-1),
+                    thread(&WMHooksThread::worker, this) { }
   void stop();
   DWORD getThreadId() { return thread_id; }
 protected:
   void worker();
 protected:
   bool active;
-  std::thread thread;
   DWORD thread_id;
+
+  // Must be last, as the thread starts running immediately and uses
+  // the other members
+  std::thread thread;
 };
 
 static WMHooksThread* hook_mgr = nullptr;
