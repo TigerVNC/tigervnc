@@ -175,6 +175,20 @@ void Surface::draw(Surface* dst, int src_x, int src_y,
   CGContextRelease(bitmap);
 }
 
+void Surface::drawScaled(Surface* dst, int dst_x, int dst_y,
+                         int dst_w, int dst_h)
+{
+  CGContextRef bitmap = make_bitmap(dst->width(), dst->height(), dst->data);
+  CGImageRef image = create_image(srgb, data, w, h, true);
+  CGRect rect = CGRectMake(dst_x, dst->height() - dst_y - dst_h,
+                           dst_w, dst_h);
+  CGContextSetBlendMode(bitmap, kCGBlendModeCopy);
+  CGContextSetInterpolationQuality(bitmap, kCGInterpolationHigh);
+  CGContextDrawImage(bitmap, rect, image);
+  CGImageRelease(image);
+  CGContextRelease(bitmap);
+}
+
 void Surface::blend(int src_x, int src_y, int dst_x, int dst_y,
                     int dst_w, int dst_h, int a)
 {

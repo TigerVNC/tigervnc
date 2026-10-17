@@ -301,6 +301,13 @@ establishing the connection. In case this is off no dialog to
 re-connect will be offered. Default is on.
 .
 .TP
+.B \-ScaleToWindow
+Scale the remote desktop to fit the viewer window, preserving its aspect
+ratio. The image scales up or down as the window is resized. This takes
+precedence over RemoteResize and leaves the remote desktop resolution
+unchanged. Default is off.
+.
+.TP
 .B \-RemoteResize
 Dynamically resize the remote desktop size as the size of the local client
 window changes. Note that this may not work with all VNC servers.

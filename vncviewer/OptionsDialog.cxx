@@ -341,6 +341,7 @@ void OptionsDialog::loadOptions(void)
   handleModifier(nullptr, this);
 
   /* Display */
+  scaleToWindowCheckbox->value(scaleToWindow);
   if (!fullScreen) {
     windowedButton->setonly();
   } else {
@@ -513,6 +514,7 @@ void OptionsDialog::storeOptions(void)
     }
   }
 
+  scaleToWindow.setParam(scaleToWindowCheckbox->value());
   fullScreenSelectedMonitors.setMonitors(monitorArrangement->value());
 
   /* Misc. */
@@ -1127,6 +1129,14 @@ void OptionsDialog::createDisplayPage(int tx, int ty, int tw, int th)
   width = tw - OUTER_MARGIN * 2;
 
   orig_tx = tx;
+
+  scaleToWindowCheckbox = new Fl_Check_Button(LBLRIGHT(tx, ty,
+                                                       CHECK_MIN_WIDTH,
+                                                       CHECK_HEIGHT,
+                                                       _("Scale desktop to window")));
+  scaleToWindowCheckbox->tooltip(_("Preserve aspect ratio and keep the "
+                                  "remote desktop resolution unchanged"));
+  ty += CHECK_HEIGHT + INNER_MARGIN;
 
   /* Display mode */
   ty += GROUP_LABEL_OFFSET;

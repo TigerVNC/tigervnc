@@ -61,6 +61,24 @@ void Surface::draw(Surface* dst, int src_x, int src_y,
                    src_x, src_y, 0, 0, dst_x, dst_y, dst_w, dst_h);
 }
 
+void Surface::drawScaled(Surface* dst, int dst_x, int dst_y,
+                         int dst_w, int dst_h)
+{
+  XTransform transform = {{{XDoubleToFixed((double)w / dst_w), 0, 0},
+                           {0, XDoubleToFixed((double)h / dst_h), 0},
+                           {0, 0, XDoubleToFixed(1.0)}}};
+  XTransform identity = {{{XDoubleToFixed(1.0), 0, 0},
+                          {0, XDoubleToFixed(1.0), 0},
+                          {0, 0, XDoubleToFixed(1.0)}}};
+
+  XRenderSetPictureTransform(fl_display, picture, &transform);
+  XRenderSetPictureFilter(fl_display, picture, FilterBilinear, nullptr, 0);
+  XRenderComposite(fl_display, PictOpSrc, picture, None, dst->picture,
+                   0, 0, 0, 0, dst_x, dst_y, dst_w, dst_h);
+  XRenderSetPictureTransform(fl_display, picture, &identity);
+  XRenderSetPictureFilter(fl_display, picture, FilterNearest, nullptr, 0);
+}
+
 static Picture alpha_mask(int a)
 {
   Pixmap pixmap;

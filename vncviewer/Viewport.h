@@ -57,6 +57,9 @@ public:
 
   void draw(Surface* dst);
 
+  void resizeFramebuffer(int w, int h);
+  core::Point desktopToWindow(const core::Point& pos) const;
+
   // Clipboard events
   void handleClipboardRequest();
   void handleClipboardAnnounce(bool available);
@@ -75,6 +78,8 @@ protected:
                         uint16_t buttonMask) override;
 
 private:
+  Surface* displayBuffer();
+
   bool hasFocus();
 
   // Show the currently set (or system) cursor
@@ -109,6 +114,8 @@ private:
   CConn* cc;
 
   PlatformPixelBuffer* frameBuffer;
+  Surface* scaledBuffer;
+  bool scaledBufferDirty;
 
   core::Point lastPointerPos;
   uint16_t lastButtonMask;
