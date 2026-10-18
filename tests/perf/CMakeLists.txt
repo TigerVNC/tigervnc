@@ -13,6 +13,14 @@ target_link_libraries(decperf test_util rdr rfb rfbclient)
 add_executable(encperf encperf.cxx)
 target_link_libraries(encperf test_util core rdr rfb rfbclient rfbserver)
 
+if(BUILD_VIEWER AND HAVE_AUDIO)
+  add_executable(audioperf
+    audioperf.cxx
+    ${CMAKE_SOURCE_DIR}/vncviewer/AudioAdapter.cxx
+    ${CMAKE_SOURCE_DIR}/vncviewer/resampler.c)
+  target_link_libraries(audioperf core)
+endif()
+
 if (BUILD_VIEWER)
   add_executable(fbperf
     fbperf.cxx
