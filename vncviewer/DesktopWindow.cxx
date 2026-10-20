@@ -381,6 +381,10 @@ void DesktopWindow::resizeFramebuffer(int new_w, int new_h)
     // size and the viewport renders it scaled to fit our window
     viewport->setFrameBufferSize(new_w, new_h);
 
+    // Make sure the scale matches the current window (initial connect
+    // does not go through DesktopWindow::resize())
+    recomputeScale();
+
     // If we're letting the viewport match the window perfectly, then
     // keep things that way for the new (scaled) size
     if (!fullscreen_active() && !maximized) {
