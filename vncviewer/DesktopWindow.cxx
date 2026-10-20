@@ -349,11 +349,18 @@ void DesktopWindow::updateWindow()
 }
 
 
+// Helper: is client-side scaling turned on?
+static bool scalingActive()
+{
+  return !(scalingMode == "Off");
+}
+
+
 void DesktopWindow::resizeFramebuffer(int new_w, int new_h)
 {
   bool maximized;
 
-  if ((new_w == viewport->w()) && (new_h == viewport->h()))
+  if ((new_w == viewport->w()) && (new_h == viewport->h()) && !scalingActive())
     return;
 
   maximized = false;
@@ -368,6 +375,22 @@ void DesktopWindow::resizeFramebuffer(int new_w, int new_h)
   if (x11_win_is_maximized(this))
     maximized = true;
 #endif
+
+  if (scalingActive()) {
+    // Client-side scaling: the framebuffer keeps the remote session's
+    // size and the viewport renders it scaled to fit our window
+    viewport->setFrameBufferSize(new_w, new_h);
+
+    // If we're letting the viewport match the window perfectly, then
+    // keep things that way for the new (scaled) size
+    if (!fullscreen_active() && !maximized) {
+      if ((w() == viewport->w()) && (h() == viewport->h()))
+        size(viewport->w(), viewport->h());
+    }
+
+    repositionWidgets();
+    return;
+  }
 
   // If we're letting the viewport match the window perfectly, then
   // keep things that way for the new size, otherwise just keep things
@@ -670,6 +693,9 @@ void DesktopWindow::resize(int x, int y, int w, int h)
     remoteResize();
   }
   if (resizing) {
+    if (scalingActive())
+      recomputeScale();
+
     remoteResize();
 
     repositionWidgets();
@@ -1281,6 +1307,12 @@ void DesktopWindow::remoteResize()
 
   if (!::remoteResize)
     return;
+
+  // With client-side scaling the local window and the remote
+  // framebuffer are deliberately decoupled
+  if (scalingActive())
+    return;
+
   if (!cc->server.supportsSetDesktopSize)
     return;
 
@@ -1472,6 +1504,33 @@ void DesktopWindow::remoteResize()
   }
 }
 
+
+void DesktopWindow::recomputeScale()
+{
+  std::string mode = scalingMode.getValueStr();
+  double scale = 1.0;
+
+  if ((mode == "Fit") || (mode == "Aspect")) {
+    int fbw, fbh;
+
+    fbw = cc->server.width();
+    fbh = cc->server.height();
+
+    if ((fbw > 0) && (fbh > 0) && (w() > 0) && (h() > 0)) {
+      double sx, sy;
+
+      sx = (double)w() / fbw;
+      sy = (double)h() / fbh;
+
+      if (mode == "Fit")
+        scale = std::min(sx, sy);
+      else
+        scale = std::max(sx, sy);
+    }
+  }
+
+  viewport->setScale(scale);
+}
 
 void DesktopWindow::repositionWidgets()
 {

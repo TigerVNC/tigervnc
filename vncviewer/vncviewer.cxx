@@ -57,6 +57,9 @@
 #include <FL/Fl_PNG_Image.H>
 #include <FL/Fl_Sys_Menu_Bar.H>
 #include <FL/fl_ask.H>
+#ifdef __APPLE__
+#include <FL/platform.H>
+#endif
 
 #include "fltk/Fl_Password_Input.h"
 #include "fltk/theme.h"

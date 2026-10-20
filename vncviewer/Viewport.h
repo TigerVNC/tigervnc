@@ -65,6 +65,12 @@ public:
 
   void resize(int x, int y, int w, int h) override;
 
+  // Client-side scaling support
+  void setFrameBufferSize(int w, int h);
+  void setScale(double scale);
+  double getScale() const { return scale_; }
+  void updateGeometry();
+
   int handle(int event) override;
 
 protected:
@@ -106,6 +112,10 @@ private:
   CConn* cc;
 
   PlatformPixelBuffer* frameBuffer;
+
+  // Client-side scaling factor applied when drawing the framebuffer
+  // (1.0 means traditional 1:1 rendering)
+  double scale_;
 
   core::Point lastPointerPos;
   uint16_t lastButtonMask;

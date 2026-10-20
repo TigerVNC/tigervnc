@@ -94,7 +94,7 @@ static const int FAKE_DEL_KEY_CODE = 0x10003;
 static const int FAKE_KEY_CODE = 0xffff;
 
 Viewport::Viewport(int w, int h, CConn* cc_)
-  : Fl_Widget(0, 0, w, h), cc(cc_), frameBuffer(nullptr),
+  : Fl_Widget(0, 0, w, h), cc(cc_), frameBuffer(nullptr), scale_(1.0),
     lastPointerPos(0, 0), lastButtonMask(0),
     keyboard(nullptr), shortcutBypass(false), shortcutActive(false),
     firstLEDState(true), pendingClientClipboard(false),
@@ -182,7 +182,14 @@ void Viewport::updateWindow()
   core::Rect r;
 
   r = frameBuffer->getDamage();
-  damage(FL_DAMAGE_USER1, r.tl.x + x(), r.tl.y + y(), r.width(), r.height());
+  if (scale_ == 1.0) {
+    damage(FL_DAMAGE_USER1, r.tl.x + x(), r.tl.y + y(), r.width(), r.height());
+  } else {
+    // Scale the damage rectangle to window coordinates
+    damage(FL_DAMAGE_USER1,
+           (int)(r.tl.x * scale_) + x(), (int)(r.tl.y * scale_) + y(),
+           (int)(r.width() * scale_) + 1, (int)(r.height() * scale_) + 1);
+  }
 }
 
 static const char * dotcursor_xpm[] = {
@@ -256,7 +263,15 @@ void Viewport::showCursor()
   if (cursorIsBlank && alwaysCursor && (cursorType == "system")) {
     window()->cursor(FL_CURSOR_DEFAULT);
   } else {
-    window()->cursor(cursor, cursorHotspot.x, cursorHotspot.y);
+    if (scale_ == 1.0) {
+      window()->cursor(cursor, cursorHotspot.x, cursorHotspot.y);
+    } else {
+      // Keep the cursor tip aligned with the actual event position
+      // when the framebuffer is drawn scaled
+      window()->cursor(cursor,
+                       (int)(cursorHotspot.x * scale_),
+                       (int)(cursorHotspot.y * scale_));
+    }
   }
 }
 
@@ -386,7 +401,12 @@ void Viewport::draw(Surface* dst)
   if ((W == 0) || (H == 0))
     return;
 
-  frameBuffer->draw(dst, X - x(), Y - y(), X, Y, W, H);
+  if (scale_ == 1.0) {
+    frameBuffer->draw(dst, X - x(), Y - y(), X, Y, W, H);
+  } else {
+    frameBuffer->drawScaled(dst, 0, 0, frameBuffer->width(), frameBuffer->height(),
+                            x(), y(), w(), h());
+  }
 }
 
 
@@ -399,22 +419,73 @@ void Viewport::draw()
   if ((W == 0) || (H == 0))
     return;
 
-  frameBuffer->draw(X - x(), Y - y(), X, Y, W, H);
+  if (scale_ == 1.0) {
+    frameBuffer->draw(X - x(), Y - y(), X, Y, W, H);
+  } else {
+    // Redraw the entire framebuffer scaled to the widget; FLTK clips
+    // it down to the actual damaged region
+    frameBuffer->drawScaled(0, 0, frameBuffer->width(), frameBuffer->height(),
+                            x(), y(), w(), h());
+  }
 }
 
 
 void Viewport::resize(int x, int y, int w, int h)
 {
-  if ((w != frameBuffer->width()) || (h != frameBuffer->height())) {
-    vlog.debug("Resizing framebuffer from %dx%d to %dx%d",
-               frameBuffer->width(), frameBuffer->height(), w, h);
+  // Only manage the framebuffer size when we're in traditional 1:1
+  // mode. With client-side scaling the widget size is decoupled from
+  // the framebuffer and managed via updateGeometry()/setFrameBufferSize()
+  if (scale_ == 1.0) {
+    if ((w != frameBuffer->width()) || (h != frameBuffer->height())) {
+      vlog.debug("Resizing framebuffer from %dx%d to %dx%d",
+                 frameBuffer->width(), frameBuffer->height(), w, h);
 
-    frameBuffer = new PlatformPixelBuffer(w, h);
-    assert(frameBuffer);
-    cc->setFramebuffer(frameBuffer);
+      frameBuffer = new PlatformPixelBuffer(w, h);
+      assert(frameBuffer);
+      cc->setFramebuffer(frameBuffer);
+    }
   }
 
   Fl_Widget::resize(x, y, w, h);
+}
+
+void Viewport::setFrameBufferSize(int w, int h)
+{
+  if ((w == frameBuffer->width()) && (h == frameBuffer->height()))
+    return;
+
+  vlog.debug("Resizing framebuffer from %dx%d to %dx%d",
+             frameBuffer->width(), frameBuffer->height(), w, h);
+
+  frameBuffer = new PlatformPixelBuffer(w, h);
+  assert(frameBuffer);
+  cc->setFramebuffer(frameBuffer);
+
+  updateGeometry();
+}
+
+void Viewport::setScale(double scale)
+{
+  if (scale_ == scale)
+    return;
+
+  scale_ = scale;
+  updateGeometry();
+}
+
+void Viewport::updateGeometry()
+{
+  int new_w, new_h;
+
+  // Round rather than truncate to avoid losing a pixel
+  new_w = (int)(frameBuffer->width() * scale_ + 0.5);
+  new_h = (int)(frameBuffer->height() * scale_ + 0.5);
+
+  if ((new_w != w()) || (new_h != h()))
+    Fl_Widget::resize(x(), y(), new_w, new_h);
+
+  // Force a full repaint with the new scale
+  damage(FL_DAMAGE_USER1);
 }
 
 
@@ -422,6 +493,7 @@ int Viewport::handle(int event)
 {
   std::string filtered;
   int buttonMask, wheelMask;
+  core::Point pos;
 
   switch (event) {
   case FL_PASTE:
@@ -489,6 +561,19 @@ int Viewport::handle(int event)
       buttonMask |= 1 << 8;
 #endif
 
+    // Translate window coordinates to (unscaled) framebuffer
+    // coordinates when client-side scaling is active
+    pos.x = (int)((Fl::event_x() - x()) / scale_);
+    pos.y = (int)((Fl::event_y() - y()) / scale_);
+    if (pos.x < 0)
+      pos.x = 0;
+    if (pos.y < 0)
+      pos.y = 0;
+    if (pos.x >= frameBuffer->width())
+      pos.x = frameBuffer->width() - 1;
+    if (pos.y >= frameBuffer->height())
+      pos.y = frameBuffer->height() - 1;
+
     if (event == FL_MOUSEWHEEL) {
       wheelMask = 0;
       if (Fl::event_dy() < 0)
@@ -502,11 +587,10 @@ int Viewport::handle(int event)
 
       // A quick press of the wheel "button", followed by a immediate
       // release below
-      handlePointerEvent({Fl::event_x() - x(), Fl::event_y() - y()},
-                         buttonMask | wheelMask);
+      handlePointerEvent(pos, buttonMask | wheelMask);
     } 
 
-    handlePointerEvent({Fl::event_x() - x(), Fl::event_y() - y()}, buttonMask);
+    handlePointerEvent(pos, buttonMask);
     return 1;
 
   case FL_FOCUS:

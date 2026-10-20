@@ -42,6 +42,7 @@ extern core::BoolParameter emulateMiddleButton;
 extern core::BoolParameter dotWhenNoCursor; // deprecated
 extern core::BoolParameter alwaysCursor;
 extern core::EnumParameter cursorType;
+extern core::EnumParameter scalingMode;
 
 extern core::StringParameter passwordFile;
 

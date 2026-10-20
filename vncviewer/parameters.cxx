@@ -81,6 +81,17 @@ core::EnumParameter
                  "AlwaysCursor is active"), ("Dot, System")).c_str(),
              {"Dot", "System"}, "Dot");
 
+core::EnumParameter
+  scalingMode("Scaling",
+              core::format(
+                "%s (%s)",
+                _("Specify how the remote framebuffer should be scaled "
+                  "within the window: Off (1:1 with scrollbars), Fit "
+                  "(uniform scale, entire desktop always visible), "
+                  "Aspect (uniform scale, fill window and crop)"),
+                ("Off, Fit, Aspect")).c_str(),
+              {"Off", "Fit", "Aspect"}, "Off");
+
 core::BoolParameter
   alertOnFatalError("AlertOnFatalError",
                     _("Show an error dialog on connection problems, "

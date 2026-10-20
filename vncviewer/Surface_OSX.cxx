@@ -175,6 +175,95 @@ void Surface::draw(Surface* dst, int src_x, int src_y,
   CGContextRelease(bitmap);
 }
 
+void Surface::drawScaled(int src_x, int src_y, int src_w, int src_h,
+                         int dst_x, int dst_y, int dst_w, int dst_h)
+{
+  CGColorSpaceRef lut;
+  CGImageRef image, subimage;
+  CGRect rect;
+
+  CGContextSaveGState(fl_gc);
+
+  // Reset the transformation matrix back to the default identity
+  // matrix as otherwise we get a massive performance hit
+  CGContextConcatCTM(fl_gc, CGAffineTransformInvert(CGContextGetCTM(fl_gc)));
+
+  // macOS Coordinates are from bottom left, not top left
+  dst_y = Fl_Window::current()->h() - (dst_y + dst_h);
+
+  lut = CGBitmapContextGetColorSpace(fl_gc);
+  assert(lut);
+
+  image = create_image(lut, data, width(), height(), true);
+
+  rect.origin.x = src_x;
+  rect.origin.y = src_y;
+  rect.size.width = src_w;
+  rect.size.height = src_h;
+
+  subimage = CGImageCreateWithImageInRect(image, rect);
+  if (!subimage)
+    throw std::runtime_error("CGImageCreateWithImageInRect");
+
+  CGContextSetBlendMode(fl_gc, kCGBlendModeCopy);
+  CGContextSetAlpha(fl_gc, 1.0);
+
+  rect.origin.x = dst_x;
+  rect.origin.y = dst_y;
+  rect.size.width = dst_w;
+  rect.size.height = dst_h;
+
+  CGContextDrawImage(fl_gc, rect, subimage);
+
+  CGContextRestoreGState(fl_gc);
+
+  CGImageRelease(subimage);
+  CGImageRelease(image);
+}
+
+void Surface::drawScaled(Surface* dst, int src_x, int src_y,
+                         int src_w, int src_h,
+                         int dst_x, int dst_y, int dst_w, int dst_h)
+{
+  CGContextRef bitmap;
+  CGColorSpaceRef lut;
+  CGImageRef image, subimage;
+  CGRect rect;
+
+  bitmap = make_bitmap(dst->width(), dst->height(), dst->data);
+
+  // macOS Coordinates are from bottom left, not top left
+  dst_y = dst->height() - (dst_y + dst_h);
+
+  lut = srgb;
+
+  image = create_image(lut, data, width(), height(), true);
+
+  rect.origin.x = src_x;
+  rect.origin.y = src_y;
+  rect.size.width = src_w;
+  rect.size.height = src_h;
+
+  subimage = CGImageCreateWithImageInRect(image, rect);
+  if (!subimage)
+    throw std::runtime_error("CGImageCreateWithImageInRect");
+
+  CGContextSetBlendMode(bitmap, kCGBlendModeCopy);
+  CGContextSetAlpha(bitmap, 1.0);
+
+  rect.origin.x = dst_x;
+  rect.origin.y = dst_y;
+  rect.size.width = dst_w;
+  rect.size.height = dst_h;
+
+  CGContextDrawImage(bitmap, rect, subimage);
+
+  CGContextRelease(bitmap);
+
+  CGImageRelease(subimage);
+  CGImageRelease(image);
+}
+
 void Surface::blend(int src_x, int src_y, int dst_x, int dst_y,
                     int dst_w, int dst_h, int a)
 {
