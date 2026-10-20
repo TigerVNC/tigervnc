@@ -21,19 +21,12 @@
 #ifndef __VNCVIEWER_WIN32_H__
 #define __VNCVIEWER_WIN32_H__
 
-#ifdef _MSC_VER
-#define snprintf(str, n, format, ...) _snprintf_s(str, n, _TRUNCATE, format, __VA_ARGS__)
-#endif
+class Fl_Window;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+int win32_enable_lowlevel_keyboard(Fl_Window* win);
+void win32_disable_lowlevel_keyboard(Fl_Window* win);
 
-int win32_enable_lowlevel_keyboard(HWND hwnd);
-void win32_disable_lowlevel_keyboard(HWND hwnd);
-
-#ifdef __cplusplus
-};
-#endif
+void win32_win_maximize(Fl_Window* win);
+bool win32_win_is_maximized(Fl_Window* win);
 
 #endif

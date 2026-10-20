@@ -20,14 +20,19 @@
 #ifndef __PARAMETERS_H__
 #define __PARAMETERS_H__
 
-#include <core/Configuration.h>
-
-#include "MonitorIndicesParameter.h"
-
-#ifdef _WIN32
 #include <list>
 #include <string>
-#endif
+
+namespace core {
+  class AliasParameter;
+  class BoolParameter;
+  class EnumListParameter;
+  class EnumParameter;
+  class IntParameter;
+  class StringParameter;
+}
+
+class MonitorIndicesParameter;
 
 #define SERVER_HISTORY_SIZE 20
 
@@ -87,7 +92,7 @@ extern core::StringParameter via;
 #endif
 
 void saveViewerParameters(const char *filename, const char *servername=nullptr);
-char* loadViewerParameters(const char *filename);
+std::string loadViewerParameters(const char *filename);
 
 #ifdef _WIN32
 std::list<std::string> loadHistoryFromRegKey();

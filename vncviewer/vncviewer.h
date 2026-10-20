@@ -19,14 +19,17 @@
 #ifndef __VNCVIEWER_H__
 #define __VNCVIEWER_H__
 
-#define VNCSERVERNAMELEN 256
-
+// Report a fatal issue that requires us to terminate all of vncviewer
 void abort_vncviewer(const char *error, ...)
   __attribute__((__format__ (__printf__, 1, 2)));
+// Report an issue that forces us to terminated the connection, but
+// still permits reconnecting
 void abort_connection(const char *error, ...)
   __attribute__((__format__ (__printf__, 1, 2)));
-void abort_connection_with_unexpected_error(const std::exception &);
+// Convenience version of abort_connection() for unexpected exceptions
+void abort_connection_unexpected(const std::exception &);
 
+// Cleanly terminate the connection
 void disconnect();
 
 void about_vncviewer();

@@ -126,9 +126,18 @@ namespace rfb {
     // from the system.
     void releaseAllKeys();
 
+    // sendPointerEvent() sends an update of the cursor position and
+    // button state to the server
+    void sendPointerEvent(const core::Point& pos, uint16_t buttonmask);
+
     // refreshFramebuffer() forces a complete refresh of the entire
     // framebuffer
     void refreshFramebuffer();
+
+    // requestScreenLayout() sends a request to the server to change
+    // the dimensions of the framebuffer and/or the screen layout
+    void requestScreenLayout(int width, int height,
+                             const ScreenSet& layout);
 
     // setPreferredEncoding()/getPreferredEncoding() adjusts which
     // encoding is listed first as a hint to the server that it is the
@@ -145,9 +154,6 @@ namespace rfb {
     // server.pf() will automatically be adjusted once the new format
     // is active.
     void setPF(const PixelFormat& pf);
-
-    CMsgReader* reader() { return reader_; }
-    CMsgWriter* writer() { return writer_; }
 
     rdr::InStream* getInStream() { return is; }
     rdr::OutStream* getOutStream() { return os; }
@@ -178,7 +184,7 @@ namespace rfb {
     // getUserPasswd() gets the username and password.  This might
     // involve a dialog, getpass(), etc.  The user buffer pointer can be
     // null, in which case no user name will be retrieved.
-    virtual void getUserPasswd(bool secure, std::string* user,
+    virtual void getUserPasswd(std::string* user,
                                std::string* password) = 0;
 
     // verifyCertificate() is called when a certificate is received from
@@ -239,13 +245,13 @@ namespace rfb {
 
     void setLEDState(unsigned int state) override;
 
-    void handleClipboardCaps(uint32_t flags,
-                             const uint32_t* lengths) override;
-    void handleClipboardRequest(uint32_t flags) override;
-    void handleClipboardPeek() override;
-    void handleClipboardNotify(uint32_t flags) override;
-    void handleClipboardProvide(uint32_t flags, const size_t* lengths,
-                                const uint8_t* const* data) override;
+    void clipboardCaps(uint32_t flags,
+                       const uint32_t* lengths) override;
+    void clipboardRequest(uint32_t flags) override;
+    void clipboardPeek() override;
+    void clipboardNotify(uint32_t flags) override;
+    void clipboardProvide(uint32_t flags, const size_t* lengths,
+                          const uint8_t* const* data) override;
 
     void audioBegin() override;
     void audioEnd() override;
@@ -302,10 +308,10 @@ namespace rfb {
     SecurityClient security;
 
   protected:
-    void setState(stateEnum s) { state_ = s; }
+    CMsgReader* reader() { return reader_; }
+    CMsgWriter* writer() { return writer_; }
 
-    void setReader(CMsgReader *r) { reader_ = r; }
-    void setWriter(CMsgWriter *w) { writer_ = w; }
+    void setState(stateEnum s) { state_ = s; }
 
     ModifiablePixelBuffer* getFramebuffer() { return framebuffer; }
 

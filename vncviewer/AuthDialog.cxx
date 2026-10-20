@@ -31,6 +31,7 @@
 #include <FL/Fl_Return_Button.H>
 #include <FL/fl_ask.H>
 
+#include <core/Configuration.h>
 #include <core/i18n.h>
 
 #include "fltk/Fl_Password_Input.h"

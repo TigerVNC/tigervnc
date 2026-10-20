@@ -5,11 +5,11 @@ endif()
 add_executable(vncpasswd 
   vncpasswd.cxx)
 
-target_link_libraries(vncpasswd core tx rfb)
+target_link_libraries(vncpasswd PRIVATE core tx rfb)
 
 if(PWQUALITY_FOUND)
   target_include_directories(vncpasswd SYSTEM PRIVATE ${PWQUALITY_INCLUDE_DIRS})
-  target_link_libraries(vncpasswd ${PWQUALITY_LIBRARIES})
+  target_link_libraries(vncpasswd PRIVATE ${PWQUALITY_LIBRARIES})
 endif()
 
 install(TARGETS vncpasswd DESTINATION ${CMAKE_INSTALL_FULL_BINDIR})

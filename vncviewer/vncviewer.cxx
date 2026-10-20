@@ -74,13 +74,13 @@
 
 static core::LogWriter vlog("main");
 
-char vncServerName[VNCSERVERNAMELEN] = { '\0' };
+static std::string vncServerName;
 
 static const char *argv0 = nullptr;
 
 static bool inMainloop = false;
 static bool exitMainloop = false;
-static char *exitError = nullptr;
+static std::string exitError;
 static bool fatalError = false;
 
 static const char *about_text()
@@ -107,12 +107,11 @@ void abort_vncviewer(const char *error, ...)
 
   // Prioritise the first error we get as that is probably the most
   // relevant one.
-  if (exitError == nullptr) {
+  if (exitError.empty()) {
     va_list ap;
 
     va_start(ap, error);
-    exitError = (char*)malloc(1024);
-    vsnprintf(exitError, 1024, error, ap);
+    exitError = core::vformat(error, ap);
     va_end(ap);
   }
 
@@ -120,8 +119,8 @@ void abort_vncviewer(const char *error, ...)
     exitMainloop = true;
   else {
     // We're early in the startup. Assume we can just exit().
-    if (alertOnFatalError && (exitError != nullptr))
-      fl_alert("%s", exitError);
+    if (alertOnFatalError && !exitError.empty())
+      fl_alert("%s", exitError.c_str());
     exit(EXIT_FAILURE);
   }
 }
@@ -132,19 +131,19 @@ void abort_connection(const char *error, ...)
 
   // Prioritise the first error we get as that is probably the most
   // relevant one.
-  if (exitError == nullptr) {
+  if (exitError.empty()) {
     va_list ap;
 
     va_start(ap, error);
-    exitError = (char*)malloc(1024);
-    vsnprintf(exitError, 1024, error, ap);
+    exitError = core::vformat(error, ap);
     va_end(ap);
   }
 
   exitMainloop = true;
 }
 
-void abort_connection_with_unexpected_error(const std::exception &e) {
+void abort_connection_unexpected(const std::exception &e)
+{
   abort_connection(_("An unexpected error occurred when communicating "
                      "with the server:\n\n%s"), e.what());
 }
@@ -186,22 +185,22 @@ static void mainloop(const char* vncserver, network::Socket* sock)
     delete cc;
 
     if (fatalError) {
-      assert(exitError != nullptr);
+      assert(!exitError.empty());
       if (alertOnFatalError)
-        fl_alert("%s", exitError);
+        fl_alert("%s", exitError.c_str());
       break;
     }
 
-    if (exitError == nullptr)
+    if (exitError.empty())
       break;
 
     if(reconnectOnError && (sock == nullptr)) {
       int ret;
       ret = fl_choice(_("%s\n\n"
                         "Attempt to reconnect?"),
-                      nullptr, fl_yes, fl_no, exitError);
-      free(exitError);
-      exitError = nullptr;
+                      nullptr, _("Reconnect"), fl_close,
+                      exitError.c_str());
+      exitError.clear();
       if (ret == 1)
         continue;
       else
@@ -209,7 +208,7 @@ static void mainloop(const char* vncserver, network::Socket* sock)
     }
 
     if (alertOnFatalError)
-      fl_alert("%s", exitError);
+      fl_alert("%s", exitError.c_str());
 
     break;
   }
@@ -457,12 +456,9 @@ potentiallyLoadConfigurationFile(const char *filename)
 #endif
 
     try {
-      const char* newServerName;
-      newServerName = loadViewerParameters(filename);
-      // This might be empty, but we still need to clear it so we
-      // don't try to connect to the filename
-      strncpy(vncServerName, newServerName, VNCSERVERNAMELEN-1);
-      vncServerName[VNCSERVERNAMELEN-1] = '\0';
+      // The server name might be empty, but we still need to clear it
+      // so we don't try to connect to the filename
+      vncServerName = loadViewerParameters(filename);
     } catch (std::exception& e) {
       vlog.error("%s", e.what());
       abort_vncviewer(_("Unable to load the specified configuration "
@@ -557,9 +553,8 @@ static void mktunnel()
   int localPort = network::findFreeTcpPort();
   int remotePort;
 
-  network::getHostAndPort(vncServerName, &remoteHost, &remotePort);
-  snprintf(vncServerName, VNCSERVERNAMELEN, "localhost::%d", localPort);
-  vncServerName[VNCSERVERNAMELEN - 1] = '\0';
+  network::getHostAndPort(vncServerName.c_str(), &remoteHost, &remotePort);
+  vncServerName = core::format("localhost::%d", localPort);
   gatewayHost = (const char*)via;
   createTunnel(gatewayHost, remoteHost.c_str(), remotePort, localPort);
 }
@@ -601,14 +596,9 @@ int main(int argc, char** argv)
   signal(SIGTERM, CleanupSignalHandler);
 
   /* Load the default parameter settings */
-  char defaultServerName[VNCSERVERNAMELEN] = "";
+  std::string defaultServerName;
   try {
-    const char* configServerName;
-    configServerName = loadViewerParameters(nullptr);
-    if (configServerName != nullptr) {
-      strncpy(defaultServerName, configServerName, VNCSERVERNAMELEN-1);
-      defaultServerName[VNCSERVERNAMELEN-1] = '\0';
-    }
+    defaultServerName = loadViewerParameters(nullptr);
   } catch (std::exception& e) {
     vlog.error("%s", e.what());
   }
@@ -650,8 +640,7 @@ int main(int argc, char** argv)
       exit(0);
     }
 
-    strncpy(vncServerName, argv[i], VNCSERVERNAMELEN);
-    vncServerName[VNCSERVERNAMELEN - 1] = '\0';
+    vncServerName = argv[i];
     i++;
   }
 
@@ -669,7 +658,7 @@ int main(int argc, char** argv)
   enable_touch();
 
   // Check if the server name in reality is a configuration file
-  potentiallyLoadConfigurationFile(vncServerName);
+  potentiallyLoadConfigurationFile(vncServerName.c_str());
 
   create_base_dirs();
 
@@ -690,8 +679,8 @@ int main(int argc, char** argv)
     std::list<network::SocketListener*> listeners;
     try {
       int port = 5500;
-      if (isdigit(vncServerName[0]))
-        port = atoi(vncServerName);
+      if (!vncServerName.empty() && isdigit(vncServerName[0]))
+        port = atoi(vncServerName.c_str());
 
       createTcpListeners(&listeners, nullptr, port);
       if (listeners.empty())
@@ -735,9 +724,9 @@ int main(int argc, char** argv)
       listeners.pop_back();
     }
   } else {
-    if (vncServerName[0] == '\0') {
-      ServerDialog::run(defaultServerName, vncServerName);
-      if (vncServerName[0] == '\0')
+    if (vncServerName.empty()) {
+      vncServerName = ServerDialog::run(defaultServerName.c_str());
+      if (vncServerName.empty())
         return 1;
     }
 
@@ -754,7 +743,7 @@ int main(int argc, char** argv)
   }
 
   inMainloop = true;
-  mainloop(vncServerName, sock);
+  mainloop(vncServerName.c_str(), sock);
   inMainloop = false;
 
   return 0;

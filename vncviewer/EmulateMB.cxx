@@ -56,6 +56,7 @@
 
 #include <stdexcept>
 
+#include <core/Configuration.h>
 #include <core/i18n.h>
 
 #include "parameters.h"

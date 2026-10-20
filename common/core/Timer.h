@@ -58,12 +58,14 @@ namespace core {
 
     // checkTimeouts()
     //   Dispatches any elapsed Timers, and returns the number of
-    //   milliseconds until the next Timer will timeout.
+    //   milliseconds until the next Timer will timeout. If there are no
+    //   scheduled Timers then -1 is returned.
     static int checkTimeouts();
 
     // getNextTimeout()
     //   Returns the number of milliseconds until the next timeout,
-    //   without dispatching any elapsed Timers.
+    //   without dispatching any elapsed Timers. If there are no
+    //   scheduled Timers then -1 is returned.
     static int getNextTimeout();
 
     // Create a Timer with the specified callback handler

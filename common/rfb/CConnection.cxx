@@ -43,6 +43,7 @@
 #include <rfb/Decoder.h>
 #include <rfb/KeysymStr.h>
 #include <rfb/PixelBuffer.h>
+#include <rfb/ScreenSet.h>
 #include <rfb/Security.h>
 #include <rfb/SecurityClient.h>
 #include <rfb/CConnection.h>
@@ -78,7 +79,7 @@ CConnection::CConnection()
     shared(false),
     state_(RFBSTATE_UNINITIALISED),
     pendingPFChange(false), preferredEncoding(encodingTight),
-    compressLevel(2), qualityLevel(-1),
+    compressLevel(-1), qualityLevel(-1),
     formatChange(false), encodingChange(false),
     firstUpdate(true), pendingUpdate(false), continuousUpdates(false),
     forceNonincremental(true),
@@ -104,6 +105,11 @@ void CConnection::setStreams(rdr::InStream* is_, rdr::OutStream* os_)
 {
   is = is_;
   os = os_;
+
+  delete reader_;
+  reader_ = new CMsgReader(this, is);
+  delete writer_;
+  writer_ = new CMsgWriter(&server, os);
 }
 
 void CConnection::setFramebuffer(ModifiablePixelBuffer* fb)
@@ -397,8 +403,6 @@ bool CConnection::processInitMsg()
 void CConnection::securityCompleted()
 {
   state_ = RFBSTATE_INITIALISATION;
-  reader_ = new CMsgReader(this, is);
-  writer_ = new CMsgWriter(&server, os);
   vlog.debug("Authentication success!");
   writer_->writeClientInit(shared);
 }
@@ -694,8 +698,7 @@ void CConnection::setLEDState(unsigned int state)
   server.setLEDState(state);
 }
 
-void CConnection::handleClipboardCaps(uint32_t flags,
-                                      const uint32_t* lengths)
+void CConnection::clipboardCaps(uint32_t flags, const uint32_t* lengths)
 {
   int i;
   uint32_t sizes[] = { 0 };
@@ -745,7 +748,7 @@ void CConnection::handleClipboardCaps(uint32_t flags,
                                sizes);
 }
 
-void CConnection::handleClipboardRequest(uint32_t flags)
+void CConnection::clipboardRequest(uint32_t flags)
 {
   if (!(flags & rfb::clipboardUTF8)) {
     vlog.debug("Ignoring clipboard request for unsupported formats 0x%x", flags);
@@ -758,13 +761,13 @@ void CConnection::handleClipboardRequest(uint32_t flags)
   handleClipboardRequest();
 }
 
-void CConnection::handleClipboardPeek()
+void CConnection::clipboardPeek()
 {
   if (server.clipboardFlags() & rfb::clipboardNotify)
     writer()->writeClipboardNotify(hasLocalClipboard ? rfb::clipboardUTF8 : 0);
 }
 
-void CConnection::handleClipboardNotify(uint32_t flags)
+void CConnection::clipboardNotify(uint32_t flags)
 {
   hasRemoteClipboard = false;
 
@@ -776,9 +779,9 @@ void CConnection::handleClipboardNotify(uint32_t flags)
   }
 }
 
-void CConnection::handleClipboardProvide(uint32_t flags,
-                                         const size_t* lengths,
-                                         const uint8_t* const* data)
+void CConnection::clipboardProvide(uint32_t flags,
+                                   const size_t* lengths,
+                                   const uint8_t* const* data)
 {
   if (!(flags & rfb::clipboardUTF8)) {
     vlog.debug("Ignoring clipboard provide with unsupported formats 0x%x", flags);
@@ -973,6 +976,12 @@ void CConnection::releaseAllKeys()
     sendKeyRelease(downKeys.begin()->first);
 }
 
+void CConnection::sendPointerEvent(const core::Point& pos,
+                                   uint16_t buttonMask)
+{
+  writer()->writePointerEvent(pos, buttonMask);
+}
+
 void CConnection::refreshFramebuffer()
 {
   forceNonincremental = true;
@@ -981,6 +990,16 @@ void CConnection::refreshFramebuffer()
   // single update in flight, so we'll have to wait to do the refresh
   if (continuousUpdates)
     requestNewUpdate();
+}
+
+void CConnection::requestScreenLayout(int width, int height,
+                                      const ScreenSet& layout)
+{
+  vlog.debug("Requesting framebuffer resize from %dx%d to %dx%d",
+             server.width(), server.height(), width, height);
+  vlog.debug("%s", layout.print().c_str());
+
+  writer()->writeSetDesktopSize(width, height, layout);
 }
 
 void CConnection::setPreferredEncoding(int encoding)
@@ -1027,6 +1046,17 @@ int CConnection::getQualityLevel()
 
 void CConnection::setPF(const PixelFormat& pf)
 {
+  if (server.beforeVersion(3, 8)) {
+    // Xvnc from TightVNC 1.2.9 sends out FramebufferUpdates with
+    // cursors "asynchronously". If this happens in the middle of a
+    // pixel format change, the server will encode the cursor with
+    // the old format, but the client will try to decode it
+    // according to the new format. This will lead to a
+    // crash. Therefore, we do not allow automatic format change for
+    // old servers.
+    return;
+  }
+
   if (server.pf() == pf && !formatChange)
     return;
 

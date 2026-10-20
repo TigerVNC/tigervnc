@@ -55,7 +55,7 @@ namespace rfb {
     SSecurityVncAuth(SConnection* sc);
     bool processMsg() override;
     int getType() const override {return secTypeVncAuth;}
-    const char* getUserName() const override {return nullptr;}
+    const char* getUserName() const override {return "";}
     AccessRights getAccessRights() const override { return accessRights; }
     static core::StringParameter vncAuthPasswdFile;
     static VncAuthPasswdParameter vncAuthPasswd;

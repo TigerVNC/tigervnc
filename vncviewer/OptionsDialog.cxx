@@ -24,6 +24,7 @@
 #include <stdlib.h>
 #include <list>
 
+#include <core/Configuration.h>
 #include <core/i18n.h>
 #include <core/string.h>
 
@@ -38,6 +39,7 @@
 #endif
 #endif
 
+#include "MonitorIndicesParameter.h"
 #include "OptionsDialog.h"
 #include "ShortcutHandler.h"
 #include "parameters.h"

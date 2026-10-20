@@ -52,7 +52,7 @@ namespace rfb {
     SSecurityTLS(SConnection* sc, bool _anon);
     virtual ~SSecurityTLS();
     bool processMsg() override;
-    const char* getUserName() const override {return nullptr;}
+    const char* getUserName() const override {return "";}
     int getType() const override { return anon ? secTypeTLSNone : secTypeX509None;}
 
     static core::StringParameter X509_CertFile;

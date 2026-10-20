@@ -1,4 +1,4 @@
-/* Copyright 2009 Pierre Ossman for Cendio AB
+/* Copyright 2009-2026 Pierre Ossman for Cendio AB
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,12 +21,10 @@
 #ifndef __RFB_SCREENSET_INCLUDED__
 #define __RFB_SCREENSET_INCLUDED__
 
-#include <stdio.h>
-#include <string.h>
 #include <stdint.h>
 
 #include <list>
-#include <set>
+#include <string>
 
 #include <core/Rect.h>
 
@@ -75,75 +73,17 @@ namespace rfb {
 
     inline int num_screens(void) const { return screens.size(); };
 
-    inline void add_screen(const Screen screen) { screens.push_back(screen); };
-    inline void remove_screen(uint32_t id) {
-      std::list<Screen>::iterator iter, nextiter;
-      for (iter = screens.begin();iter != screens.end();iter = nextiter) {
-        nextiter = iter; nextiter++;
-        if (iter->id == id)
-            screens.erase(iter);
-      }
-    }
+    void add_screen(const Screen screen);
+    void remove_screen(uint32_t id);
 
-    inline bool validate(int fb_width, int fb_height) const {
-      std::list<Screen>::const_iterator iter;
-      std::set<uint32_t> seen_ids;
-      core::Rect fb_rect;
+    bool validate(int fb_width, int fb_height) const;
 
-      if (screens.empty())
-        return false;
-      if (num_screens() > 255)
-        return false;
+    std::string print() const;
 
-      fb_rect.setXYWH(0, 0, fb_width, fb_height);
-
-      for (iter = screens.begin();iter != screens.end();++iter) {
-        if (iter->dimensions.is_empty())
-          return false;
-        if (!iter->dimensions.enclosed_by(fb_rect))
-          return false;
-        if (seen_ids.find(iter->id) != seen_ids.end())
-          return false;
-        seen_ids.insert(iter->id);
-      }
-
-      return true;
-    };
-
-    inline void print(char* str, size_t len) const {
-      char buffer[128];
-      std::list<Screen>::const_iterator iter;
-      snprintf(buffer, sizeof(buffer), "%d screen(s)\n", num_screens());
-      str[0] = '\0';
-      strncat(str, buffer, len - 1 - strlen(str));
-      for (iter = screens.begin();iter != screens.end();++iter) {
-        snprintf(buffer, sizeof(buffer),
-                 "    %10d (0x%08x): %dx%d+%d+%d (flags 0x%08x)\n",
-                 (int)iter->id, (unsigned)iter->id,
-                 iter->dimensions.width(), iter->dimensions.height(),
-                 iter->dimensions.tl.x, iter->dimensions.tl.y,
-                 (unsigned)iter->flags);
-        strncat(str, buffer, len - 1 - strlen(str));
-      }
-    };
-
-    inline bool operator==(const ScreenSet& r) const {
-      std::list<Screen> a = screens;
-      a.sort(compare_screen);
-      std::list<Screen> b = r.screens;
-      b.sort(compare_screen);
-      return a == b;
-    };
-    inline bool operator!=(const ScreenSet& r) const { return !operator==(r); }
+    bool operator==(const ScreenSet& r) const;
+    bool operator!=(const ScreenSet& r) const;
 
     std::list<Screen> screens;
-
-  private:
-    static inline bool compare_screen(const Screen& first, const Screen& second)
-    {
-      return first.id < second.id;
-    }
-
   };
 
 };

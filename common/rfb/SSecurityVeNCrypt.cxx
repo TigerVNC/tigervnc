@@ -183,7 +183,7 @@ bool SSecurityVeNCrypt::processMsg()
 const char* SSecurityVeNCrypt::getUserName() const
 {
   if (ssecurity == nullptr)
-    return nullptr;
+    return "";
   return ssecurity->getUserName();
 }
 
