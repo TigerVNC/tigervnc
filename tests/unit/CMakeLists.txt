@@ -44,7 +44,7 @@ target_link_libraries(pixelformat rfb GTest::gtest_main)
 gtest_discover_tests(pixelformat)
 
 add_executable(shortcuthandler shortcuthandler.cxx ../../vncviewer/ShortcutHandler.cxx)
-target_link_libraries(shortcuthandler core ${Intl_LIBRARIES} GTest::gtest_main)
+target_link_libraries(shortcuthandler core GTest::gtest_main)
 gtest_discover_tests(shortcuthandler)
 
 add_executable(unicode unicode.cxx)
