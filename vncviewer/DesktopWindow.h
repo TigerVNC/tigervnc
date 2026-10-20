@@ -138,6 +138,10 @@ private:
   std::map<std::string, time_t> overlayTimes;
 
   bool firstUpdate;
+
+  // Client-side scaling: set once the initial window layout has been
+  // done against the real framebuffer dimensions
+  bool scaledInitialLayout;
   bool delayedFullscreen;
   bool sentDesktopSize;
 

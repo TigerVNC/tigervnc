@@ -86,6 +86,7 @@ static std::set<DesktopWindow *> instances;
 DesktopWindow::DesktopWindow(int w, int h, CConn* cc_)
   : Fl_Window(w, h), cc(cc_), offscreen(nullptr),
     firstUpdate(true),
+    scaledInitialLayout(false),
     delayedFullscreen(false), sentDesktopSize(false),
     pendingRemoteResize(false), lastResize({0, 0}),
     keyboardGrabbed(false), mouseGrabbed(false), regrabOnFocus(false),
@@ -381,9 +382,29 @@ void DesktopWindow::resizeFramebuffer(int new_w, int new_h)
     // size and the viewport renders it scaled to fit our window
     viewport->setFrameBufferSize(new_w, new_h);
 
-    // Make sure the scale matches the current window (initial connect
-    // does not go through DesktopWindow::resize())
-    recomputeScale();
+    if (!scaledInitialLayout) {
+      // First layout: don't trust the initial window size (it may be
+      // a placeholder). Size the window to the entire remote desktop,
+      // scaled down to the monitor work area at most.
+      int sx, sy, sw, sh;
+      double scale0;
+
+      scaledInitialLayout = true;
+
+      Fl::screen_work_area(sx, sy, sw, sh, x(), y());
+
+      scale0 = 1.0;
+      if ((new_w > sw) || (new_h > sh))
+        scale0 = std::min((double)sw / new_w, (double)sh / new_h);
+
+      viewport->setScale(scale0);
+
+      if (!fullscreen_active() && !maximized)
+        size(viewport->w(), viewport->h());
+    } else {
+      // Make sure the scale matches the current window
+      recomputeScale();
+    }
 
     // If we're letting the viewport match the window perfectly, then
     // keep things that way for the new (scaled) size
