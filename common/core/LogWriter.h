@@ -101,6 +101,7 @@ namespace core {
   class LogParameter : public StringListParameter {
   public:
     LogParameter();
+    using StringListParameter::setParam;
     bool setParam(const char* v) override;
     // We explicitly don't inherit setParam(std::list) as we want to
     // force callers to use the above method to parse the values

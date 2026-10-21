@@ -29,6 +29,7 @@
 #include <time.h>
 #include <sys/time.h>
 
+#include <core/Configuration.h>
 #include <core/LogWriter.h>
 #include <core/i18n.h>
 #include <core/string.h>
@@ -38,6 +39,7 @@
 #include <rfb/screenTypes.h>
 
 #include "DesktopWindow.h"
+#include "MonitorIndicesParameter.h"
 #include "OptionsDialog.h"
 #include "parameters.h"
 #include "vncviewer.h"
@@ -51,13 +53,11 @@
 #include <FL/Fl_Image_Surface.H>
 #include <FL/Fl_Scrollbar.H>
 #include <FL/fl_draw.H>
-#include <FL/x.H>
 
 #if defined(WIN32)
 #include "win32.h"
 #elif defined(__APPLE__)
 #include "cocoa.h"
-#include <Carbon/Carbon.h>
 #else
 #include "x11.h"
 #endif
@@ -246,9 +246,7 @@ DesktopWindow::DesktopWindow(int w, int h, CConn* cc_)
   // By default we get a slight delay when we warp the pointer, something
   // we don't want or we'll get jerky movement
 #ifdef __APPLE__
-  CGEventSourceRef event = CGEventSourceCreate(kCGEventSourceStateCombinedSessionState);
-  CGEventSourceSetLocalEventsSuppressionInterval(event, 0);
-  CFRelease(event);
+  cocoa_event_delay(0);
 #endif
 }
 
@@ -288,12 +286,6 @@ DesktopWindow::~DesktopWindow()
 
   // FLTK automatically deletes all child widgets, so we shouldn't touch
   // them ourselves here
-}
-
-
-const rfb::PixelFormat &DesktopWindow::getPreferredPF()
-{
-  return viewport->getPreferredPF();
 }
 
 
@@ -369,11 +361,7 @@ void DesktopWindow::resizeFramebuffer(int new_w, int new_h)
   maximized = false;
 
 #ifdef WIN32
-  WINDOWPLACEMENT wndpl;
-  memset(&wndpl, 0, sizeof(WINDOWPLACEMENT));
-  wndpl.length = sizeof(WINDOWPLACEMENT);
-  GetWindowPlacement(fl_xid(this), &wndpl);
-  if (wndpl.showCmd == SW_SHOWMAXIMIZED)
+  if (win32_win_is_maximized(this))
     maximized = true;
 #elif defined(__APPLE__)
   if (cocoa_win_is_zoomed(this))
@@ -386,7 +374,8 @@ void DesktopWindow::resizeFramebuffer(int new_w, int new_h)
   // If we're letting the viewport match the window perfectly, then
   // keep things that way for the new size, otherwise just keep things
   // like they are.
-  if (!fullscreen_active() && !maximized) {
+  if (!fullscreen_active() && !maximized && !pendingRemoteResize &&
+      !Fl::has_timeout(handleResizeTimeout, this)) {
     if ((w() == viewport->w()) && (h() == viewport->h()))
       size(new_w, new_h);
   }
@@ -437,10 +426,8 @@ void DesktopWindow::setCursorPos(const core::Point& pos)
   SetCursorPos(mapped.x + x_root() + viewport->x(),
                mapped.y + y_root() + viewport->y());
 #elif defined(__APPLE__)
-  CGPoint new_pos;
-  new_pos.x = mapped.x + x_root() + viewport->x();
-  new_pos.y = mapped.y + y_root() + viewport->y();
-  CGWarpMouseCursorPosition(new_pos);
+  cocoa_set_cursor_pos(mapped.x + x_root() + viewport->x(),
+                       mapped.y + y_root() + viewport->y());
 #else // Assume this is Xlib
   x11_warp_pointer(mapped.x + x_root() + viewport->x(),
                    mapped.y + y_root() + viewport->y());
@@ -637,7 +624,7 @@ void DesktopWindow::handleClipboardData(const char* data)
 
 void DesktopWindow::resize(int x, int y, int w, int h)
 {
-  bool resizing;
+  bool moving, resizing;
 
 #if ! (defined(WIN32) || defined(__APPLE__))
   // X11 window managers will treat a resize to cover the entire
@@ -685,13 +672,19 @@ void DesktopWindow::resize(int x, int y, int w, int h)
   }
 #endif
 
+  moving = resizing = false;
+  if ((this->x() != x) || (this->y() != y))
+    moving = true;
   if ((this->w() != w) || (this->h() != h))
     resizing = true;
-  else
-    resizing = false;
 
   Fl_Window::resize(x, y, w, h);
 
+  if (moving) {
+    // We might be overlapping a different set of monitors now, even if
+    // our size is the same
+    remoteResize();
+  }
   if (resizing) {
     remoteResize();
 
@@ -987,7 +980,7 @@ int DesktopWindow::fltkDispatch(int event, Fl_Window *win, void *)
     case FL_SHOW:
       // In this particular place, FL_SHOW means an actual MapNotify,
       // which means we can continue enabling initial fullscreen.
-      if (dw->delayedFullscreen) {
+      if (dw->delayedFullscreen && !dw->fullscreen_active()) {
         // Hack: Fullscreen requests may be ignored, so we need a
         // timeout for when we should stop waiting. We also need to wait
         // for the resize, which can come after the fullscreen event.
@@ -1033,6 +1026,14 @@ void DesktopWindow::fullscreen_on()
   bool allMonitors = fullScreenMode == "all";
   bool selectedMonitors = fullScreenMode == "selected";
   int top, bottom, left, right;
+
+#ifdef __APPLE__
+  // Avoid surprises if we cannot do proper multiheaded full screen
+  if (cocoa_screens_have_separate_spaces()) {
+    allMonitors = false;
+    selectedMonitors = false;
+  }
+#endif
 
   if (not selectedMonitors and not allMonitors) {
     top = bottom = left = right = Fl::screen_num(x(), y(), w(), h());
@@ -1159,7 +1160,7 @@ void DesktopWindow::grabKeyboard()
 #if defined(WIN32)
   int ret;
   
-  ret = win32_enable_lowlevel_keyboard(fl_xid(this));
+  ret = win32_enable_lowlevel_keyboard(this);
   if (ret != 0) {
     vlog.error(_("Failure grabbing control of the keyboard"));
     addOverlayError(_("Failure grabbing control of the keyboard"));
@@ -1211,7 +1212,7 @@ void DesktopWindow::ungrabKeyboard()
   updateCaption();
 
 #if defined(WIN32)
-  win32_disable_lowlevel_keyboard(fl_xid(this));
+  win32_disable_lowlevel_keyboard(this);
 #elif defined(__APPLE__)
   cocoa_untap_keyboard();
 #else
@@ -1232,7 +1233,7 @@ void DesktopWindow::grabPointer()
 
   // Having a button pressed prevents us from grabbing, we make
   // a new attempt in fltkHandle()
-  if (!x11_grab_pointer(fl_xid(this)))
+  if (!x11_grab_pointer(this))
     return;
 #endif
 
@@ -1245,7 +1246,7 @@ void DesktopWindow::ungrabPointer()
   mouseGrabbed = false;
 
 #if !defined(WIN32) && !defined(__APPLE__)
-  x11_ungrab_pointer(fl_xid(this));
+  x11_ungrab_pointer(this);
 #endif
 }
 
@@ -1253,16 +1254,7 @@ void DesktopWindow::ungrabPointer()
 void DesktopWindow::maximizeWindow()
 {
 #if defined(WIN32)
-  // We cannot use ShowWindow() in full screen mode as it will
-  // resize things implicitly. Fortunately modifying the style
-  // directly results in a maximized state once we leave full screen.
-  if (fullscreen_active()) {
-    WINDOWINFO wi;
-    wi.cbSize = sizeof(WINDOWINFO);
-    GetWindowInfo(fl_xid(this), &wi);
-    SetWindowLongPtr(fl_xid(this), GWL_STYLE, wi.dwStyle | WS_MAXIMIZE);
-  } else
-    ShowWindow(fl_xid(this), SW_MAXIMIZE);
+  win32_win_maximize(this);
 #elif defined(__APPLE__)
   if (fullscreen_active())
     return;
@@ -1479,17 +1471,10 @@ void DesktopWindow::remoteResize()
       return;
   }
 
-  vlog.debug("Requesting framebuffer resize from %dx%d to %dx%d",
-             cc->server.width(), cc->server.height(), width, height);
-
-  char buffer[2048];
-  layout.print(buffer, sizeof(buffer));
   if (!layout.validate(width, height)) {
     vlog.error(_("Invalid screen layout computed for resize request!"));
-    vlog.error("%s", buffer);
+    vlog.error("%s", layout.print().c_str());
     return;
-  } else {
-    vlog.debug("%s", buffer);
   }
 
   pendingRemoteResize = true;
@@ -1497,7 +1482,12 @@ void DesktopWindow::remoteResize()
   lastResizeWidth = width;
   lastResizeHeight = height;
   lastResizeLayout = layout;
-  cc->writer()->writeSetDesktopSize(width, height, layout);
+  try {
+    cc->requestScreenLayout(width, height, layout);
+  } catch (std::exception& e) {
+    vlog.error("%s", e.what());
+    abort_connection_unexpected(e);
+  }
 }
 
 

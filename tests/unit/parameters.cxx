@@ -50,6 +50,63 @@ static std::ostream& operator<<(std::ostream& os,
 
 }
 
+TEST(AliasParameter, values)
+{
+  core::IntParameter realparam("stringparam", "", 0);
+  core::AliasParameter strings("aliasparam", &realparam);
+
+  strings.setParam("123");
+  EXPECT_EQ(realparam, 123);
+
+  strings.setParam("-456");
+  EXPECT_EQ(realparam, -456);
+}
+
+TEST(AliasParameter, encoding)
+{
+  core::IntParameter realparam("intparam", "", 0);
+  core::AliasParameter encoding("aliasparam", &realparam);
+
+  realparam.setParam(123);
+  EXPECT_EQ(encoding.getValueStr(), "123");
+
+  realparam.setParam(-456);
+  EXPECT_EQ(encoding.getValueStr(), "-456");
+}
+
+TEST(AliasParameter, default)
+{
+  core::IntParameter realparam("intparam", "", 30);
+  core::AliasParameter def("aliasparam", &realparam);
+
+  EXPECT_TRUE(def.isDefault());
+
+  def.setParam("123");
+  EXPECT_FALSE(def.isDefault());
+
+  def.setParam("30");
+  EXPECT_TRUE(def.isDefault());
+
+  realparam.setParam(123);
+  EXPECT_FALSE(def.isDefault());
+
+  realparam.setParam(30);
+  EXPECT_TRUE(def.isDefault());
+}
+
+TEST(AliasParameter, immutable)
+{
+  core::IntParameter realparam("intparam", "", 0);
+  core::AliasParameter immutable("aliasparam", &realparam);
+
+  immutable.setImmutable();
+  immutable.setParam("123");
+  immutable.setParam("-456");
+  realparam.setParam(123);
+  EXPECT_EQ(immutable.getValueStr(), "0");
+  EXPECT_EQ(realparam.getValueStr(), "0");
+}
+
 TEST(BoolParameter, values)
 {
   core::BoolParameter bools("boolparam", "", false);
@@ -250,7 +307,7 @@ TEST(StringParameter, null)
 
   // NULL default value
   EXPECT_THROW({
-    core::StringParameter defnull("stringparam", "", nullptr);
+    core::StringParameter defnull("defnullparam", "", nullptr);
   }, std::invalid_argument);
 }
 
@@ -333,7 +390,7 @@ TEST(EnumParameter, validation)
 
   // Valid default value
   EXPECT_THROW({
-    core::EnumParameter defvalid("enumparam", "", {"a", "b", "c"}, "d");
+    core::EnumParameter defvalid("defvalidparam", "", {"a", "b", "c"}, "d");
   }, std::invalid_argument);
 }
 
@@ -347,12 +404,12 @@ TEST(EnumParameter, null)
 
   // NULL default value
   EXPECT_THROW({
-    core::EnumParameter defnull("enumparam", "", {""}, nullptr);
+    core::EnumParameter defnull("defnullparam", "", {""}, nullptr);
   }, std::invalid_argument);
 
   // NULL enum value
   EXPECT_THROW({
-    core::EnumParameter nullenum("enumparam", "", {"a", nullptr, "b"}, "a");
+    core::EnumParameter nullenum("nullenumparam", "", {"a", nullptr, "b"}, "a");
   }, std::invalid_argument);
 }
 

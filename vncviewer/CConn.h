@@ -54,8 +54,7 @@ protected:
 
   // CConnection callback methods
 
-  void getUserPasswd(bool secure, std::string *user,
-                     std::string *password) override;
+  void getUserPasswd(std::string *user, std::string *password) override;
   bool verifyCertificate(unsigned int status,
                          const uint8_t* certificate,
                          size_t length) override;
@@ -115,8 +114,6 @@ private:
 
   unsigned updateCount;
   unsigned pixelCount;
-
-  rfb::PixelFormat fullColourPF;
 
   int lastServerEncoding;
 

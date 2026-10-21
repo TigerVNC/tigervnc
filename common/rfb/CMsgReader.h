@@ -44,10 +44,6 @@ namespace rfb {
     // readMsg() reads a message, calling the handler as appropriate.
     bool readMsg();
 
-    rdr::InStream* getInStream() { return is; }
-
-    int imageBufIdealSize;
-
   protected:
     bool readSetColourMapEntries();
     bool readBell();

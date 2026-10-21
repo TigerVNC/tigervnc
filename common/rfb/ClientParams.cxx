@@ -22,6 +22,8 @@
 #include <config.h>
 #endif
 
+#include <string.h>
+
 #include <stdexcept>
 
 #include <core/LogWriter.h>
@@ -76,10 +78,8 @@ void ClientParams::setDimensions(int width, int height)
 void ClientParams::setDimensions(int width, int height, const ScreenSet& layout)
 {
   if (!layout.validate(width, height)) {
-    char buffer[2048];
     vlog.debug("Invalid screen layout for %dx%d:", width, height);
-    layout.print(buffer, sizeof(buffer));
-    vlog.debug("%s", buffer);
+    vlog.debug("%s", layout.print().c_str());
 
     throw std::invalid_argument("Attempted to configure an invalid screen layout");
   }

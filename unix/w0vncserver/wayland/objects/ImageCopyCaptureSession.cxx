@@ -121,8 +121,8 @@ ImageCopyCaptureSession::~ImageCopyCaptureSession()
     ext_image_copy_capture_frame_v1_destroy(frame);
   if (buffer)
     wl_buffer_destroy(buffer);
-
-  ext_image_copy_capture_session_v1_destroy(session);
+  if (session)
+    ext_image_copy_capture_session_v1_destroy(session);
 
   delete pool;
   delete shm;

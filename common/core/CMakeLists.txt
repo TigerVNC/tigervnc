@@ -17,7 +17,7 @@ add_library(core STATIC
 
 target_include_directories(core PUBLIC ${CMAKE_SOURCE_DIR}/common)
 target_include_directories(core SYSTEM PUBLIC ${PIXMAN_INCLUDE_DIRS})
-target_link_libraries(core ${PIXMAN_LIBRARIES})
+target_link_libraries(core PRIVATE ${PIXMAN_LIBRARIES})
 
 if(UNIX)
   target_sources(core PRIVATE Logger_syslog.cxx)
@@ -26,13 +26,13 @@ endif()
 if(ENABLE_NLS)
   target_sources(core PRIVATE i18n.cxx)
   target_include_directories(core SYSTEM PUBLIC ${Intl_INCLUDE_DIR})
-  target_link_libraries(core ${Intl_LIBRARIES})
+  target_link_libraries(core PRIVATE ${Intl_LIBRARIES})
 endif()
 
 if(WIN32)
-  target_link_libraries(core ws2_32)
+  target_link_libraries(core PRIVATE ws2_32)
 elseif(APPLE)
-  target_link_libraries(core "-framework Carbon")
+  target_link_libraries(core PRIVATE "-framework Carbon")
 endif()
 
 if(UNIX)

@@ -31,7 +31,7 @@ namespace rfb {
     SSecurityNone(SConnection* sc_) : SSecurity(sc_) {}
     bool processMsg() override { return true; }
     int getType() const override {return secTypeNone;}
-    const char* getUserName() const override {return nullptr;}
+    const char* getUserName() const override {return "";}
   };
 }
 #endif

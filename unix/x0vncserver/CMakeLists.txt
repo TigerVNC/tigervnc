@@ -19,39 +19,39 @@ add_executable(x0vncserver
 )
 
 target_include_directories(x0vncserver SYSTEM PUBLIC ${X11_INCLUDE_DIR})
-target_link_libraries(x0vncserver tx rfbserver rfb network rdr unixcommon core)
+target_link_libraries(x0vncserver PRIVATE tx rfbserver rfb network rdr unixcommon core)
 
 # systemd support (socket activation)
 if (SYSTEMD_FOUND)
   target_include_directories(x0vncserver SYSTEM PRIVATE ${SYSTEMD_INCLUDE_DIRS})
-  target_link_libraries(x0vncserver ${SYSTEMD_LIBRARIES})
+  target_link_libraries(x0vncserver PRIVATE ${SYSTEMD_LIBRARIES})
 endif()
 
 if(X11_XTest_LIB)
-  target_link_libraries(x0vncserver ${X11_XTest_LIB})
+  target_link_libraries(x0vncserver PRIVATE ${X11_XTest_LIB})
 else()
   message(WARNING "No XTest extension.  x0vncserver will be view-only.")
 endif()
 
 if(X11_Xdamage_LIB)
-  target_link_libraries(x0vncserver ${X11_Xdamage_LIB})
+  target_link_libraries(x0vncserver PRIVATE ${X11_Xdamage_LIB})
 else()
   message(WARNING "No DAMAGE extension.  x0vncserver will have to use the slower polling method.")
 endif()
 
 if(X11_Xfixes_LIB)
-  target_link_libraries(x0vncserver ${X11_Xfixes_LIB})
+  target_link_libraries(x0vncserver PRIVATE ${X11_Xfixes_LIB})
 else()
   message(WARNING "No XFIXES extension.  x0vncserver will not be able to show cursors.")
 endif()
 
 if(X11_Xrandr_LIB)
-  target_link_libraries(x0vncserver ${X11_Xrandr_LIB})
+  target_link_libraries(x0vncserver PRIVATE ${X11_Xrandr_LIB})
 else()
   message(WARNING "No Xrandr extension.  x0vncserver will not be able to resize session.")
 endif()
 
-target_link_libraries(x0vncserver ${X11_LIBRARIES})
+target_link_libraries(x0vncserver PRIVATE ${X11_LIBRARIES})
 
 install(TARGETS x0vncserver DESTINATION ${CMAKE_INSTALL_FULL_BINDIR})
 install(FILES x0vncserver.man DESTINATION ${CMAKE_INSTALL_FULL_MANDIR}/man1 RENAME x0vncserver.1)

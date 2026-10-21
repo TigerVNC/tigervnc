@@ -6,6 +6,7 @@ add_library(tx STATIC
   TXWindow.cxx)
 
 target_include_directories(tx PUBLIC ${CMAKE_SOURCE_DIR}/unix/tx)
-target_include_directories(tx SYSTEM PUBLIC ${X11_INCLUDE_DIR})
 
-target_link_libraries(tx core ${X11_LIBRARIES})
+target_link_libraries(tx PRIVATE core)
+target_include_directories(tx SYSTEM PUBLIC ${X11_INCLUDE_DIR})
+target_link_libraries(tx PRIVATE ${X11_LIBRARIES})

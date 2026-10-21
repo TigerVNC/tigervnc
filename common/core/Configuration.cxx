@@ -60,7 +60,7 @@ Configuration* Configuration::global() {
 bool Configuration::set(const char* paramName, const char* val,
                         bool immutable)
 {
-  VoidParameter* current = get(paramName);
+  Parameter* current = get(paramName);
   if (!current)
     return false;
 
@@ -70,11 +70,11 @@ bool Configuration::set(const char* paramName, const char* val,
   return b;
 }
 
-VoidParameter* Configuration::get(const char* param)
+Parameter* Configuration::get(const char* param)
 {
-  VoidParameter* found;
+  Parameter* found;
   found = nullptr;
-  for (VoidParameter* current: params) {
+  for (Parameter* current: params) {
     if (strcasecmp(current->getName(), param) == 0) {
       if (found != nullptr)
         throw std::logic_error("Invalid access of ambigious "
@@ -86,10 +86,11 @@ VoidParameter* Configuration::get(const char* param)
 }
 
 void Configuration::list(int width, int nameWidth) {
-  for (VoidParameter* current: params) {
+  for (Parameter* current: params) {
     std::string def_str = current->getDefaultStr();
     std::string desc_str = current->getDescription();
-    if (!def_str.empty())
+    if ((dynamic_cast<AliasParameter*>(current) == nullptr) &&
+        !def_str.empty())
       desc_str = format("%s (%s=%s)", desc_str.c_str(), _("default"),
                         def_str.c_str());
     const char* desc = desc_str.c_str();
@@ -127,10 +128,10 @@ void Configuration::list(int width, int nameWidth) {
 
 
 bool Configuration::remove(const char* param) {
-  std::list<VoidParameter*>::iterator iter;
+  std::list<Parameter*>::iterator iter;
 
   iter = std::find_if(params.begin(), params.end(),
-                      [param](VoidParameter* p) {
+                      [param](Parameter* p) {
                         return strcasecmp(p->getName(), param) == 0;
                       });
   if (iter == params.end())
@@ -170,7 +171,7 @@ int Configuration::handleArg(int argc, char* argv[], int index)
   if (equal)
     return set(param.c_str(), val.c_str()) ? 1 : 0;
 
-  VoidParameter* current = get(param.c_str());
+  Parameter* current = get(param.c_str());
   if (!current)
     return 0;
 
@@ -201,9 +202,9 @@ int Configuration::handleArg(int argc, char* argv[], int index)
 }
 
 
-// -=- VoidParameter
+// -=- Parameter
 
-VoidParameter::VoidParameter(const char* name_, const char* desc_)
+Parameter::Parameter(const char* name_, const char* desc_)
   : immutable(false), name(name_), description(desc_)
 {
   Configuration *conf;
@@ -211,7 +212,7 @@ VoidParameter::VoidParameter(const char* name_, const char* desc_)
   conf = Configuration::global();
 
   // Check and warn for conflicts
-  for (VoidParameter* param: conf->params) {
+  for (Parameter* param: conf->params) {
     // FIXME: This generally runs before any loggers are set up
     if (strcasecmp(param->getName(), name.c_str()) == 0)
       fprintf(stderr, "Error: Multiple parameters named %s\n",
@@ -219,12 +220,12 @@ VoidParameter::VoidParameter(const char* name_, const char* desc_)
   }
 
   conf->params.push_back(this);
-  conf->params.sort([](const VoidParameter* a, const VoidParameter* b) {
+  conf->params.sort([](const Parameter* a, const Parameter* b) {
     return strcasecmp(a->getName(), b->getName()) < 0;
   });
 }
 
-VoidParameter::~VoidParameter() {
+Parameter::~Parameter() {
   Configuration *conf;
 
   conf = Configuration::global();
@@ -232,34 +233,34 @@ VoidParameter::~VoidParameter() {
 }
 
 const char*
-VoidParameter::getName() const {
+Parameter::getName() const {
   return name.c_str();
 }
 
 const char*
-VoidParameter::getDescription() const {
+Parameter::getDescription() const {
   return description.c_str();
 }
 
-bool VoidParameter::setParam() {
+bool Parameter::setParam() {
   return false;
 }
 
-bool VoidParameter::isDefault() const {
+bool Parameter::isDefault() const {
   return getDefaultStr() == getValueStr();
 }
 
 void
-VoidParameter::setImmutable() {
+Parameter::setImmutable() {
   vlog.debug("Set immutable %s", getName());
   immutable = true;
 }
 
 // -=- AliasParameter
 
-AliasParameter::AliasParameter(const char* name_, VoidParameter* param_)
-  : VoidParameter(name_,
-                  format(_("Alias for %s"), param_->getName()).c_str()),
+AliasParameter::AliasParameter(const char* name_, Parameter* param_)
+  : Parameter(name_,
+              format(_("Alias for %s"), param_->getName()).c_str()),
     param(param_)
 {
 }
@@ -274,7 +275,7 @@ bool AliasParameter::setParam() {
 }
 
 std::string AliasParameter::getDefaultStr() const {
-  return "";
+  return param->getDefaultStr();
 }
 
 std::string AliasParameter::getValueStr() const {
@@ -291,7 +292,7 @@ AliasParameter::setImmutable() {
 // -=- BoolParameter
 
 BoolParameter::BoolParameter(const char* name_, const char* desc_, bool v)
-: VoidParameter(name_, desc_), value(v), def_value(v) {
+: Parameter(name_, desc_), value(v), def_value(v) {
 }
 
 bool
@@ -339,7 +340,7 @@ BoolParameter::operator bool() const {
 
 IntParameter::IntParameter(const char* name_, const char* desc_, int v,
                            int minValue_, int maxValue_)
-  : VoidParameter(name_, desc_), value(v), def_value(v),
+  : Parameter(name_, desc_), value(v), def_value(v),
     minValue(minValue_), maxValue(maxValue_)
 {
   if (v < minValue || v > maxValue) {
@@ -393,7 +394,7 @@ IntParameter::operator int() const {
 
 StringParameter::StringParameter(const char* name_, const char* desc_,
                                  const char* v)
-  : VoidParameter(name_, desc_), value(v?v:""), def_value(v?v:"")
+  : Parameter(name_, desc_), value(v?v:""), def_value(v?v:"")
 {
   if (!v) {
     vlog.error("Default value <null> for %s not allowed",name_);
@@ -427,7 +428,7 @@ StringParameter::operator const char *() const {
 EnumParameter::EnumParameter(const char* name_, const char* desc_,
                              const std::set<const char*>& enums_,
                              const char* v)
-  : VoidParameter(name_, desc_), value(v?v:""), def_value(v?v:"")
+  : Parameter(name_, desc_), value(v?v:""), def_value(v?v:"")
 {
   if (!v) {
     vlog.error("Default value <null> for %s not allowed", name_);
@@ -502,7 +503,7 @@ bool EnumParameter::operator!=(const std::string& other) const
 
 BinaryParameter::BinaryParameter(const char* name_, const char* desc_,
 				 const uint8_t* v, size_t l)
-: VoidParameter(name_, desc_),
+: Parameter(name_, desc_),
   value(nullptr), length(0), def_value(nullptr), def_length(0) {
   if (l) {
     assert(v);
@@ -562,7 +563,7 @@ template<typename ValueType>
 ListParameter<ValueType>::ListParameter(const char* name_,
                                         const char* desc_,
                                         const ListType& v)
-  : VoidParameter(name_, desc_), value(v), def_value(v)
+  : Parameter(name_, desc_), value(v), def_value(v)
 {
 }
 

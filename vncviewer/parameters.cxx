@@ -32,6 +32,7 @@
 
 #include "parameters.h"
 
+#include <core/Configuration.h>
 #include <core/Exception.h>
 #include <core/LogWriter.h>
 #include <core/i18n.h>
@@ -48,6 +49,8 @@
 #include <limits.h>
 #include <errno.h>
 #include <assert.h>
+
+#include "MonitorIndicesParameter.h"
 
 static core::LogWriter vlog("Parameters");
 
@@ -266,7 +269,7 @@ static const char* IDENTIFIER_STRING = "TigerVNC Configuration file Version 1.0"
  * We only save the sub set of parameters that can be modified from
  * the graphical user interface
  */
-static core::VoidParameter* parameterArray[] = {
+static core::Parameter* parameterArray[] = {
   /* Security */
 #ifdef HAVE_GNUTLS
   &rfb::CSecurityTLS::X509CA,
@@ -310,7 +313,7 @@ static core::VoidParameter* parameterArray[] = {
   &shortcutModifiers,
 };
 
-static core::VoidParameter* readOnlyParameterArray[] = {
+static core::Parameter* readOnlyParameterArray[] = {
   &fullScreenAllMonitors,
   &dotWhenNoCursor
 };
@@ -571,7 +574,7 @@ static void saveToReg(const char* servername) {
       _("Failed to save \"%s\": %s"), "ServerName", e.what()));
   }
 
-  for (core::VoidParameter* param : parameterArray) {
+  for (core::Parameter* param : parameterArray) {
     core::IntParameter* iparam;
     core::BoolParameter* bparam;
 
@@ -609,7 +612,7 @@ static void saveToReg(const char* servername) {
   // Remove read-only parameters to replicate the behaviour of Linux/macOS when they
   // store a config to disk. If the parameter hasn't been migrated at this point it
   // will be lost.
-  for (core::VoidParameter* param : readOnlyParameterArray) {
+  for (core::Parameter* param : readOnlyParameterArray) {
     try {
       removeValue(param->getName(), &hKey);
     } catch (std::exception& e) {
@@ -671,7 +674,7 @@ std::list<std::string> loadHistoryFromRegKey()
   return serverHistory;
 }
 
-static void getParametersFromReg(core::VoidParameter* parameters[],
+static void getParametersFromReg(core::Parameter* parameters[],
                                  size_t parameters_len, HKEY* hKey)
 {
   const size_t buffersize = 256;
@@ -704,7 +707,7 @@ static void getParametersFromReg(core::VoidParameter* parameters[],
   }
 }
 
-static char* loadFromReg() {
+static std::string loadFromReg() {
 
   HKEY hKey;
 
@@ -714,19 +717,17 @@ static char* loadFromReg() {
   if (res != ERROR_SUCCESS) {
     if (res == ERROR_FILE_NOT_FOUND) {
       // The key does not exist, defaults will be used.
-      return nullptr;
+      return "";
     }
 
     throw core::win32_error(_("Failed to open registry key"), res);
   }
 
   const size_t buffersize = 256;
-  static char servername[buffersize];
+  char servername[buffersize];
 
-  char servernameBuffer[buffersize];
   try {
-    if (getKeyString("ServerName", servernameBuffer, buffersize, &hKey))
-      snprintf(servername, buffersize, "%s", servernameBuffer);
+    getKeyString("ServerName", servername, buffersize, &hKey);
   } catch(std::exception& e) {
     vlog.error(_("Failed to read parameter \"%s\": %s"),
                "ServerName", e.what());
@@ -735,11 +736,11 @@ static char* loadFromReg() {
 
   getParametersFromReg(parameterArray,
                        sizeof(parameterArray) /
-                         sizeof(core::VoidParameter*),
+                         sizeof(core::Parameter*),
                        &hKey);
   getParametersFromReg(readOnlyParameterArray,
                        sizeof(readOnlyParameterArray) /
-                         sizeof(core::VoidParameter*),
+                         sizeof(core::Parameter*),
                        &hKey);
 
   res = RegCloseKey(hKey);
@@ -793,7 +794,7 @@ void saveViewerParameters(const char *filename, const char *servername) {
   }
   fprintf(f, "ServerName=%s\n", encodingBuffer);
 
-  for (core::VoidParameter* param : parameterArray) {
+  for (core::Parameter* param : parameterArray) {
     if (param->isDefault())
       continue;
     if (!encodeValue(param->getValueStr().c_str(),
@@ -809,7 +810,7 @@ void saveViewerParameters(const char *filename, const char *servername) {
 }
 
 static bool findAndSetViewerParameterFromValue(
-  core::VoidParameter* parameters[], size_t parameters_len,
+  core::Parameter* parameters[], size_t parameters_len,
   char* value, char* line)
 {
   const size_t buffersize = 256;
@@ -828,13 +829,13 @@ static bool findAndSetViewerParameterFromValue(
   return true;
 }
 
-char* loadViewerParameters(const char *filename) {
+std::string loadViewerParameters(const char *filename) {
 
   const size_t buffersize = 256;
   char filepath[PATH_MAX];
   char line[buffersize];
   char decodingBuffer[buffersize];
-  static char servername[sizeof(line)];
+  char servername[sizeof(line)];
 
   memset(servername, '\0', sizeof(servername));
 
@@ -858,7 +859,7 @@ char* loadViewerParameters(const char *filename) {
   FILE* f = fopen(filepath, "r");
   if (!f) {
     if (!filename)
-      return nullptr; // Use defaults.
+      return ""; // Use defaults.
     throw core::posix_error(
       core::format(_("Failed to open \"%s\""), filepath), errno);
   }
@@ -901,6 +902,9 @@ char* loadViewerParameters(const char *filename) {
     // Skip empty lines and comments
     if ((line[0] == '\n') || (line[0] == '#') || (line[0] == '\r'))
       continue;
+    // Ignore any stray NULL in the file
+    if (line[0] == '\0')
+      continue;
 
     int len = strlen(line);
     if (line[len-1] == '\n') {
@@ -938,14 +942,14 @@ char* loadViewerParameters(const char *filename) {
       } else {
         invalidParameterName = findAndSetViewerParameterFromValue(
           parameterArray,
-          sizeof(parameterArray) / sizeof(core::VoidParameter *),
+          sizeof(parameterArray) / sizeof(core::Parameter *),
           value, line);
 
         if (invalidParameterName) {
           invalidParameterName = findAndSetViewerParameterFromValue(
             readOnlyParameterArray,
             sizeof(readOnlyParameterArray) /
-              sizeof(core::VoidParameter *),
+              sizeof(core::Parameter *),
             value, line);
         }
       }

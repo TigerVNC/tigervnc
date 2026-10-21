@@ -122,7 +122,7 @@ namespace rfb {
     // the connection.  The accept argument should be true for
     // acceptance, or false for rejection, in which case a string
     // reason may also be given.
-    virtual void approveConnection(network::Socket* sock, bool accept,
+    virtual void approveConnection(SConnection* client, bool accept,
                                    const char* reason = nullptr) = 0;
 
     // - Close all currently-connected clients, by calling

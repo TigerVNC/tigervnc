@@ -255,3 +255,18 @@ void cocoa_enable_minimize(Fl_Window *win)
   assert(nsw);
   nsw.styleMask |= NSWindowStyleMaskMiniaturizable;
 }
+
+void cocoa_event_delay(double seconds)
+{
+  CGEventSourceRef event = CGEventSourceCreate(kCGEventSourceStateCombinedSessionState);
+  CGEventSourceSetLocalEventsSuppressionInterval(event, seconds);
+  CFRelease(event);
+}
+
+void cocoa_set_cursor_pos(int x, int y)
+{
+  CGPoint new_pos;
+  new_pos.x = x;
+  new_pos.y = y;
+  CGWarpMouseCursorPosition(new_pos);
+}

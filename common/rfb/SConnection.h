@@ -37,6 +37,10 @@ namespace rdr {
   class OutStream;
 }
 
+namespace network {
+  class Socket;
+}
+
 namespace rfb {
 
   class SMsgReader;
@@ -46,13 +50,13 @@ namespace rfb {
   class SConnection : public SMsgHandler {
   public:
 
-    SConnection(AccessRights accessRights);
+    SConnection(network::Socket* s, AccessRights accessRights);
     virtual ~SConnection();
 
     // Methods to initialise the connection
 
-    // setStreams() sets the streams to be used for the connection.  These must
-    // be set before initialiseProtocol() and processMsg() are called.  The
+    // setStreams() sets the streams to be used for the connection.
+    // These default to using the socket input and output stream. The
     // SSecurity object may call setStreams() again to provide alternative
     // streams over which the RFB protocol is sent (i.e. encrypting/decrypting
     // streams).  Ownership of the streams remains with the caller
@@ -121,8 +125,14 @@ namespace rfb {
                                    state_ == RFBSTATE_CLIENT_READY ||
                                    state_ == RFBSTATE_NORMAL); }
 
-    SMsgReader* reader() { return reader_; }
-    SMsgWriter* writer() { return writer_; }
+    // getUserName() gets the name of the user attempting
+    // authentication. The storage is owned by the SConnection object,
+    // so a copy must be taken if necessary.
+    virtual const char* getUserName() const;
+
+    network::Socket* getSock() { return sock; }
+
+    const char* getPeerEndpoint() const {return peerEndpoint.c_str();}
 
     rdr::InStream* getInStream() { return is; }
     rdr::OutStream* getOutStream() { return os; }
@@ -155,13 +165,13 @@ namespace rfb {
 
     void clientCutText(const char* str) override;
 
-    void handleClipboardCaps(uint32_t flags,
-                             const uint32_t* lengths) override;
-    void handleClipboardRequest(uint32_t flags) override;
-    void handleClipboardPeek() override;
-    void handleClipboardNotify(uint32_t flags) override;
-    void handleClipboardProvide(uint32_t flags, const size_t* lengths,
-                                const uint8_t* const* data) override;
+    void clipboardCaps(uint32_t flags,
+                       const uint32_t* lengths) override;
+    void clipboardRequest(uint32_t flags) override;
+    void clipboardPeek() override;
+    void clipboardNotify(uint32_t flags) override;
+    void clipboardProvide(uint32_t flags, const size_t* lengths,
+                          const uint8_t* const* data) override;
 
     // Methods to be overridden in a derived class
 
@@ -193,12 +203,10 @@ namespace rfb {
 
     // queryConnection() is called when authentication has succeeded, but
     // before informing the client.  It can be overridden to query a local user
-    // to accept the incoming connection, for example.  The userName argument
-    // is the name of the user making the connection, or null (note that the
-    // storage for userName is owned by the caller).  The connection must be
+    // to accept the incoming connection, for example. The connection must be
     // accepted or rejected by calling approveConnection(), either directly
     // from queryConnection() or some time later.
-    virtual void queryConnection(const char* userName);
+    virtual void queryConnection();
 
     // clientReady() is called when the client has fully completed
     // initialization. This can be overridden if the desktop needs more
@@ -245,16 +253,20 @@ namespace rfb {
     // client received the request.
     virtual void handleClipboardData(const char* data);
 
+  protected:
     // failConnection() prints a message to the log, sends a connection
     // failed message to the client (if possible) and throws an
     // Exception.
     void failConnection(const char* message);
     void failConnection(const std::string& message);
 
-    void setState(stateEnum s) { state_ = s; }
+    SMsgReader* reader() { return reader_; }
+    SMsgWriter* writer() { return writer_; }
 
-    void setReader(SMsgReader *r) { reader_ = r; }
-    void setWriter(SMsgWriter *w) { writer_ = w; }
+    // FIXME: EncodeManager does low level access to SMsgWriter
+    friend class EncodeManager;
+
+    void setState(stateEnum s) { state_ = s; }
 
   private:
     void cleanup();
@@ -269,9 +281,14 @@ namespace rfb {
     bool processSecurityFailure();
     bool processInitMsg();
 
+    void handleSocketTimeout(core::Timer* t);
     void handleAuthFailureTimeout(core::Timer* t);
 
     int defaultMajorVersion, defaultMinorVersion;
+
+    network::Socket* sock;
+    core::MethodTimer<SConnection> socketTimer;
+    std::string peerEndpoint;
 
     rdr::InStream* is;
     rdr::OutStream* os;
@@ -288,6 +305,7 @@ namespace rfb {
     stateEnum state_;
     int32_t preferredEncoding;
     AccessRights accessRights;
+    std::string userName;
 
     std::string clientClipboard;
     bool hasRemoteClipboard;

@@ -429,7 +429,7 @@ public class CSecurityTLS extends CSecurity {
               if (peer.equals(((String)nxt.get(1)).toLowerCase()))
                 return;
             } else if (((Integer)nxt.get(0)).intValue() == 7) {
-              String peer = ((CConn)client).getSocket().getPeerAddress();
+              String peer = client.getServerName().toLowerCase();
               if (peer.equals(((String)nxt.get(1)).toLowerCase()))
                 return;
             }

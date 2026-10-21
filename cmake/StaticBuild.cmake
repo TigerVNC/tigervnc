@@ -156,20 +156,15 @@ if(BUILD_STATIC)
 
     if(X11_FOUND AND NOT APPLE)
       if(${CMAKE_SYSTEM_NAME} MATCHES "SunOS")
-        set(FLTK_LIBRARIES "${FLTK_LIBRARIES} ${X11_Xcursor_LIB} ${X11_Xfixes_LIB} -Wl,-Bstatic -lXft -Wl,-Bdynamic -lfontconfig -lXrender -lXext -R/usr/sfw/lib -L=/usr/sfw/lib -lfreetype -lsocket -lnsl")
+        set(FLTK_LIBRARIES "${FLTK_LIBRARIES} ${X11_Xcursor_LIB} ${X11_Xfixes_LIB} -Wl,-Bstatic -lXft -Wl,-Bdynamic -lfontconfig -lXrender -lXext -lX11 -R/usr/sfw/lib -L=/usr/sfw/lib -lfreetype -lsocket -lnsl")
       else()
-        set(FLTK_LIBRARIES "${FLTK_LIBRARIES} -Wl,-Bstatic -lXcursor -lXfixes -lXft -lfontconfig -lexpat -lfreetype -lpng -lbz2 -luuid -lXrender -lXext -lXinerama -Wl,-Bdynamic")
+        set(FLTK_LIBRARIES "${FLTK_LIBRARIES} -Wl,-Bstatic -lXcursor -lXfixes -lXft -lfontconfig -lexpat -lfreetype -lpng -lbz2 -luuid -lXrender -lXext -lXinerama -lX11 -lxcb -lXau -lXdmcp -Wl,-Bdynamic")
       endif()
-
-      set(FLTK_LIBRARIES "${FLTK_LIBRARIES} -lX11")
     endif()
   endif()
 
-  # X11 libraries change constantly on Linux systems so we have to link
-  # them statically, even libXext. libX11 is somewhat stable, although
-  # even it has had an ABI change once or twice.
   if(X11_FOUND AND NOT ${CMAKE_SYSTEM_NAME} MATCHES "SunOS")
-    set(X11_LIBRARIES "-Wl,-Bstatic -lXext -Wl,-Bdynamic -lX11")
+    set(X11_LIBRARIES "-Wl,-Bstatic -lXext -lX11 -lxcb -lXau -lXdmcp -Wl,-Bdynamic")
     if(X11_XTest_LIB)
       set(X11_XTest_LIB "-Wl,-Bstatic -lXtst -Wl,-Bdynamic")
     endif()

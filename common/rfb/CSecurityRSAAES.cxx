@@ -511,9 +511,9 @@ void CSecurityRSAAES::writeCredentials()
   std::string password;
 
   if (subtype == secTypeRA2UserPass)
-    cc->getUserPasswd(isSecure(), &username, &password);
+    cc->getUserPasswd(&username, &password);
   else
-    cc->getUserPasswd(isSecure(), nullptr, &password);
+    cc->getUserPasswd(nullptr, &password);
 
   if (subtype == secTypeRA2UserPass) {
     if (username.size() > 255)

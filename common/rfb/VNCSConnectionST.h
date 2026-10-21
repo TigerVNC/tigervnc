@@ -38,7 +38,7 @@
 namespace rfb {
   class VNCServerST;
 
-  class VNCSConnectionST : private SConnection,
+  class VNCSConnectionST : public SConnection,
                            public core::Timer::Callback {
   public:
     VNCSConnectionST(VNCServerST* server_, network::Socket* s, bool reverse,
@@ -49,8 +49,6 @@ namespace rfb {
 
     bool accessCheck(AccessRights ar) const override;
     void close(const char* reason) override;
-
-    using SConnection::authenticated;
 
     // Methods called from VNCServerST.  None of these methods ever knowingly
     // throw an exception.
@@ -108,8 +106,6 @@ namespace rfb {
     // or because the current cursor position has not been set by this client.
     bool needRenderedCursor();
 
-    network::Socket* getSock() { return sock; }
-
     // Change tracking
 
     void add_changed(const core::Region& region) { updates.add_changed(region); }
@@ -117,14 +113,17 @@ namespace rfb {
       updates.add_copied(dest, delta);
     }
 
-    const char* getPeerEndpoint() const {return peerEndpoint.c_str();}
-
   private:
+    using SConnection::approveConnection;
+    using SConnection::requestClipboard;
+    using SConnection::announceClipboard;
+    using SConnection::sendClipboardData;
+
     // SConnection callbacks
 
     // These methods are invoked as callbacks from processMsg(
     void authSuccess() override;
-    void queryConnection(const char* userName) override;
+    void queryConnection() override;
     void clientReady(bool shared) override;
     void setPixelFormat(const PixelFormat& pf) override;
     void pointerEvent(const core::Point& pos,
@@ -174,9 +173,6 @@ namespace rfb {
     void desktopReady() override;
 
   private:
-    network::Socket* sock;
-    core::Timer socketTimer;
-    std::string peerEndpoint;
     bool reverseConnection;
 
     bool inProcessMessages;
