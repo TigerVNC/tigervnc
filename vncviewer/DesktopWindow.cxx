@@ -399,18 +399,20 @@ void DesktopWindow::resizeFramebuffer(int new_w, int new_h)
 
       viewport->setScale(scale0);
 
-      if (!fullscreen_active() && !maximized)
-        size(viewport->w(), viewport->h());
+      // Always size the window, even in (attempted) full screen: the
+      // OS can silently fail to honour a full screen request for a
+      // window that isn't mapped yet (macOS), and we would otherwise
+      // be left with a tiny stub window.
+      //
+      // The window takes the FULL monitor work area (the remote
+      // desktop is letterboxed+centered inside it), so the window
+      // always feels as large as the screen rather than being locked
+      // to the scaled framebuffer size.
+      if (!maximized)
+        resize(sx, sy, sw, sh);
     } else {
       // Make sure the scale matches the current window
       recomputeScale();
-    }
-
-    // If we're letting the viewport match the window perfectly, then
-    // keep things that way for the new (scaled) size
-    if (!fullscreen_active() && !maximized) {
-      if ((w() == viewport->w()) && (h() == viewport->h()))
-        size(viewport->w(), viewport->h());
     }
 
     repositionWidgets();
