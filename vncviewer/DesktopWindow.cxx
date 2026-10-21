@@ -44,6 +44,9 @@
 #include "vncviewer.h"
 #include "CConn.h"
 #include "Surface.h"
+#ifdef __APPLE__
+#include "CocoaHelper.h"
+#endif
 #include "Viewport.h"
 #include "touch.h"
 #include "fltk/event_dispatch_handler.h"
@@ -247,7 +250,33 @@ DesktopWindow::DesktopWindow(int w, int h, CConn* cc_)
 #ifdef __APPLE__
   cocoa_event_delay(0);
 #endif
+
+#ifdef __APPLE__
+  // FLTK's Cocoa backend can silently lose resize requests around
+  // window mapping, leaving a small stub window on screen while
+  // FLTK itself believes it is full size. Re-assert the real
+  // geometry via the native window API until they agree.
+  sizeWatchdogCount = 0;
+  Fl::add_timeout(2.0, handleSizeWatchdog, this);
+#endif
 }
+
+
+#ifdef __APPLE__
+void DesktopWindow::handleSizeWatchdog(void *data)
+{
+  DesktopWindow *self = static_cast<DesktopWindow*>(data);
+
+  if (self->sizeWatchdogCount > 60)
+    return;
+
+  self->sizeWatchdogCount++;
+
+  cocoa_reassert_window_size(self, self->w(), self->h());
+
+  Fl::repeat_timeout(2.0, handleSizeWatchdog, self);
+}
+#endif
 
 
 DesktopWindow::~DesktopWindow()
@@ -264,6 +293,9 @@ DesktopWindow::~DesktopWindow()
   Fl::remove_timeout(handleEdgeScroll, this);
   Fl::remove_timeout(handleStatsTimeout, this);
   Fl::remove_timeout(updateOverlay, this);
+#ifdef __APPLE__
+  Fl::remove_timeout(handleSizeWatchdog, this);
+#endif
   Fl::remove_idle(checkFocus, this);
 
   OptionsDialog::removeCallback(handleOptions);

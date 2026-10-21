@@ -120,6 +120,13 @@ private:
 
   static void handleStatsTimeout(void *data);
 
+#ifdef __APPLE__
+  // Window size watchdog — re-asserts the real NSWindow geometry
+  // when FLTK's resize requests get lost (see DesktopWindow.cxx)
+  static void handleSizeWatchdog(void *data);
+  int sizeWatchdogCount;
+#endif
+
 private:
   CConn* cc;
   Fl_Scrollbar *hscroll, *vscroll;
