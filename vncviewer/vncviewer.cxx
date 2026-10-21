@@ -72,6 +72,12 @@
 #include "win32.h"
 #endif
 
+#ifdef __APPLE__
+#if FL_MAJOR_VERSION > 1 || (FL_MAJOR_VERSION == 1 && FL_MINOR_VERSION >= 4)
+#include <FL/platform.H> // Fl_Mac_App_Menu is no longer transitively included in FLTK 1.4
+#endif
+#endif
+
 static core::LogWriter vlog("main");
 
 static std::string vncServerName;
