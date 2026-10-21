@@ -184,9 +184,29 @@ void Surface::drawScaled(int src_x, int src_y, int src_w, int src_h,
 
   CGContextSaveGState(fl_gc);
 
-  // Reset the transformation matrix back to the default identity
-  // matrix as otherwise we get a massive performance hit
-  CGContextConcatCTM(fl_gc, CGAffineTransformInvert(CGContextGetCTM(fl_gc)));
+  // Reset the transformation matrix as otherwise we get a massive
+  // performance hit. However we must PRESERVE the scale factor of the
+  // transform: on HiDPI (Retina) displays FLTK's context carries a 2x
+  // scale that maps points to physical pixels. Resetting to the raw
+  // identity made our point-based rectangles land in physical pixel
+  // space, i.e. the remote desktop only covered the bottom-left
+  // QUARTER of the window on Retina screens (the macOS PPI
+  // misalignment bug). Keep the scale magnitude, drop translation and
+  // any flip/rotation (we do our own Y flip below).
+  {
+    CGAffineTransform ctm = CGContextGetCTM(fl_gc);
+    CGFloat sx = sqrtf((float)(ctm.a * ctm.a + ctm.b * ctm.b));
+    CGFloat sy = sqrtf((float)(ctm.c * ctm.c + ctm.d * ctm.d));
+    if (sx <= 0) sx = 1;
+    if (sy <= 0) sy = 1;
+    CGContextConcatCTM(fl_gc,
+                       CGAffineTransformInvert(CGContextGetCTM(fl_gc)));
+    CGContextConcatCTM(fl_gc, CGAffineTransformMake(sx, 0, 0, sy, 0, 0));
+  }
+
+  // High quality interpolation keeps text readable at non-1:1 scales.
+  // Medium is plenty for near-1:1 scales and measurably cheaper.
+  CGContextSetInterpolationQuality(fl_gc, kCGInterpolationMedium);
 
   // macOS Coordinates are from bottom left, not top left
   dst_y = Fl_Window::current()->h() - (dst_y + dst_h);
