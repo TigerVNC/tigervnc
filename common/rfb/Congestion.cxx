@@ -442,9 +442,7 @@ void Congestion::updateCongestion()
 #endif
     congWindow = congWindow * baseRTT / minRTT;
     inSlowStart = false;
-  }
-
-  if (inSlowStart) {
+  } else if (inSlowStart) {
     // Slow start. Aggressive growth until we see congestion.
 
     if (diff > 25) {
