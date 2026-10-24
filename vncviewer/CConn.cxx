@@ -61,6 +61,7 @@
 
 #include "fltk/layout.h"
 #include "fltk/util.h"
+#include "AudioAdapter.h"
 #include "AudioOutput.h"
 #include "AuthDialog.h"
 #include "CConn.h"
@@ -91,7 +92,7 @@ static const unsigned bpsEstimateWindow = 1000;
 CConn::CConn()
   : serverPort(0), sock(nullptr),
     msgTimer(this, &CConn::processNextMsg), desktop(nullptr),
-    audioOutput(nullptr),
+    audioOutput(nullptr), audioAdapter(nullptr),
     updateCount(0), pixelCount(0),
     lastServerEncoding((unsigned int)-1), bpsEstimate(20000000)
 {
@@ -108,6 +109,8 @@ CConn::CConn()
   // has something for us.
   if (playAudio) {
     audioOutput = AudioOutput::create();
+    if (audioOutput != nullptr)
+      audioAdapter = new AudioAdapter();
     supportsAudio = audioOutput != nullptr;
   }
 #endif
@@ -130,6 +133,7 @@ CConn::~CConn()
   if (desktop)
     delete desktop;
 
+  delete audioAdapter;
   delete audioOutput;
 
   if (sock) {
@@ -931,6 +935,7 @@ void CConn::handleAudioBegin()
   if (audioOutput == nullptr)
     return;
 
+  audioAdapter->reset();
   audioOutput->start();
 }
 
@@ -938,6 +943,9 @@ void CConn::handleAudioEnd()
 {
   if (audioOutput == nullptr)
     return;
+
+  const std::vector<uint8_t>& tail = audioAdapter->flush();
+  audioOutput->play(tail.data(), tail.size());
 
   audioOutput->stop();
 }
@@ -947,7 +955,11 @@ void CConn::handleAudioData(const uint8_t* data, size_t length)
   if (audioOutput == nullptr)
     return;
 
-  audioOutput->play(data, length);
+  audioAdapter->updateDelay(audioOutput->getDelay(),
+                            audioOutput->getTargetDelay());
+
+  const std::vector<uint8_t>& samples = audioAdapter->process(data, length);
+  audioOutput->play(samples.data(), samples.size());
 }
 
 

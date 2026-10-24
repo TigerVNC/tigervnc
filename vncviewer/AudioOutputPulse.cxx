@@ -262,7 +262,10 @@ bool AudioOutputPulse::open()
   attr.fragsize = (uint32_t)-1;
 
   if (pa_stream_connect_playback(stream, nullptr, &attr,
-                                 PA_STREAM_NOFLAGS, nullptr, nullptr) < 0) {
+                                 (pa_stream_flags_t)
+                                   (PA_STREAM_INTERPOLATE_TIMING |
+                                    PA_STREAM_AUTO_TIMING_UPDATE),
+                                 nullptr, nullptr) < 0) {
     vlog.error(_("Could not open audio playback device: %s"),
                pa_strerror(pa_context_errno(context)));
     pa_stream_unref(stream);
@@ -548,4 +551,41 @@ void AudioOutputPulse::play(const uint8_t* samples, size_t length)
   pa_threaded_mainloop_unlock(mainloop);
 
   reportError();
+}
+
+ssize_t AudioOutputPulse::getDelay()
+{
+  ssize_t delay;
+
+  if (!opened)
+    return -1;
+
+  pa_threaded_mainloop_lock(mainloop);
+
+  delay = pendingSize / getSampleSize();
+
+  if (pa_stream_get_state(stream) == PA_STREAM_READY) {
+    pa_usec_t latency;
+    int negative;
+
+    if (pa_stream_get_latency(stream, &latency, &negative) != 0)
+      delay = -1;
+    else if (!negative)
+      delay += latency * audioFrequency / PA_USEC_PER_SEC;
+  }
+
+  pa_threaded_mainloop_unlock(mainloop);
+
+  return delay;
+}
+
+size_t AudioOutputPulse::getTargetDelay()
+{
+  size_t target;
+
+  pa_threaded_mainloop_lock(mainloop);
+  target = (audioMinStreamDelayMs + extraDelayMs) * audioFrequency / 1000;
+  pa_threaded_mainloop_unlock(mainloop);
+
+  return target;
 }
