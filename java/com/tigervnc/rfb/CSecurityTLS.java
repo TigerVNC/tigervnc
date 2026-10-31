@@ -100,9 +100,9 @@ public class CSecurityTLS extends CSecurity {
 
   public static void setDefaults()
   {
-    if (new File(getDefaultCA()).exists())
+    if (new File(getDefaultCA()).isFile())
       X509CA.setDefaultStr(getDefaultCA());
-    if (new File(getDefaultCRL()).exists())
+    if (new File(getDefaultCRL()).isFile())
       X509CRL.setDefaultStr(getDefaultCRL());
   }
 
@@ -209,7 +209,7 @@ public class CSecurityTLS extends CSecurity {
             for (X509Certificate c : ((X509TrustManager)m).getAcceptedIssuers())
               ks.setCertificateEntry(getThumbprint((X509Certificate)c), c);
         File cacert = new File(cafile);
-        if (cacert.exists() && cacert.canRead()) {
+        if (cacert.isFile() && cacert.canRead()) {
           InputStream caStream = new MyFileInputStream(cacert);
           Collection<? extends Certificate> cacerts =
             cf.generateCertificates(caStream);
@@ -221,7 +221,7 @@ public class CSecurityTLS extends CSecurity {
         PKIXBuilderParameters params =
           new PKIXBuilderParameters(ks, new X509CertSelector());
         File crlcert = new File(crlfile);
-        if (!crlcert.exists() || !crlcert.canRead()) {
+        if (!crlcert.isFile() || !crlcert.canRead()) {
           params.setRevocationEnabled(false);
         } else {
           try (InputStream crlStream = new FileInputStream(crlfile)) {
