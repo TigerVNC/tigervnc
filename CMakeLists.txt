@@ -18,6 +18,7 @@ include(CheckCXXCompilerFlag)
 include(CheckCSourceRuns)
 
 include(CMakeMacroLibtoolFile)
+include(CreateFindModule)
 
 project(tigervnc)
 set(VERSION 1.16.80)
