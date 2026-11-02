@@ -28,6 +28,7 @@
 
 namespace network { class Socket; }
 
+class AudioAdapter;
 class AudioOutput;
 class DesktopWindow;
 
@@ -111,6 +112,7 @@ private:
   DesktopWindow *desktop;
 
   AudioOutput *audioOutput;
+  AudioAdapter *audioAdapter;
 
   unsigned updateCount;
   unsigned pixelCount;

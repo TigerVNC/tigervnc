@@ -36,6 +36,8 @@ public:
   void start() override;
   void stop() override;
   void play(const uint8_t* samples, size_t length) override;
+  ssize_t getDelay() override;
+  size_t getTargetDelay() override;
 
 private:
   bool connect();
