@@ -111,9 +111,12 @@ static int check_passwd_pwquality(const char *password)
   int r;
   void *auxerror;
   pwquality_settings_t *pwq;
+  int enforcing;
+
   pwq = pwquality_default_settings();
   if (!pwq)
     return -EINVAL;
+
   r = pwquality_read_config(pwq, NULL, &auxerror);
   if (r) {
     fprintf(stderr, _("Cannot check password quality: %s\n"),
@@ -127,7 +130,13 @@ static int check_passwd_pwquality(const char *password)
     fprintf(stderr, _("Password quality check failed:\n"));
     fprintf(stderr, "    %s\n",
       pwquality_strerror(NULL, 0, r, auxerror));
-    r = -EPERM;
+
+    enforcing = 1;
+    pwquality_get_int_value(pwq, PWQ_SETTING_ENFORCING, &enforcing);
+    if (enforcing)
+      r = -EPERM;
+    else
+      r = 0;
   }
   pwquality_free_settings(pwq);
 
