@@ -108,31 +108,31 @@ static int encrypt_pipe() {
 #ifdef HAVE_PWQUALITY
 static int check_passwd_pwquality(const char *password)
 {
-	int r;
-	void *auxerror;
-	pwquality_settings_t *pwq;
-	pwq = pwquality_default_settings();
-	if (!pwq)
-		return -EINVAL;
-	r = pwquality_read_config(pwq, NULL, &auxerror);
-	if (r) {
-		fprintf(stderr, _("Cannot check password quality: %s\n"),
-			pwquality_strerror(NULL, 0, r, auxerror));
-		pwquality_free_settings(pwq);
-		return -EINVAL;
-	}
+  int r;
+  void *auxerror;
+  pwquality_settings_t *pwq;
+  pwq = pwquality_default_settings();
+  if (!pwq)
+    return -EINVAL;
+  r = pwquality_read_config(pwq, NULL, &auxerror);
+  if (r) {
+    fprintf(stderr, _("Cannot check password quality: %s\n"),
+      pwquality_strerror(NULL, 0, r, auxerror));
+    pwquality_free_settings(pwq);
+    return -EINVAL;
+  }
 
-	r = pwquality_check(pwq, password, NULL, NULL, &auxerror);
-	if (r < 0) {
-		fprintf(stderr, _("Password quality check failed:\n"));
+  r = pwquality_check(pwq, password, NULL, NULL, &auxerror);
+  if (r < 0) {
+    fprintf(stderr, _("Password quality check failed:\n"));
     fprintf(stderr, "    %s\n",
-			pwquality_strerror(NULL, 0, r, auxerror));
-		r = -EPERM;
-	}
-	pwquality_free_settings(pwq);
+      pwquality_strerror(NULL, 0, r, auxerror));
+    r = -EPERM;
+  }
+  pwquality_free_settings(pwq);
 
-	//return the score of password quality
-	return r;
+  //return the score of password quality
+  return r;
 }
 #endif
 
