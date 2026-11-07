@@ -21,6 +21,7 @@
 #endif
 
 #include <assert.h>
+#include <errno.h>
 #include <unistd.h>
 #include <sys/mman.h>
 #include <fcntl.h>
