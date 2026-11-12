@@ -107,6 +107,26 @@ bool Blacklist::isBlackmarked(const char* name) {
   // Increment the black-mark counter but allow
   // the entry to pass.
   (*i).second.marks++;
+
+  // Clean out any very old entries to free up memory
+  BlacklistMap::iterator j, next;
+  for (j = blm.begin(); j != blm.end(); j = next) {
+    time_t lastSeen;
+
+    next = j;
+    ++next;
+
+    if ((*j).second.blockUntil == 0)
+      lastSeen = (*j).second.added;
+    else
+      lastSeen = (*j).second.blockUntil;
+    if (lastSeen > now)
+      continue;
+
+    if (now - lastSeen > initialTimeout * 60)
+      blm.erase(j);
+  }
+
   return false;
 }
 
