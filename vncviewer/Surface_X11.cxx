@@ -23,6 +23,7 @@
 #include <assert.h>
 #include <stdlib.h>
 
+#include <new>
 #include <stdexcept>
 
 #include <FL/Fl_RGB_Image.H>
