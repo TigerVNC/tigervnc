@@ -42,6 +42,8 @@ core::IntParameter initialTimeout("BlacklistTimeout",
                                     "a host is first black-listed"),
                                   10, 0, INT_MAX);
 
+// Sanity limit in case we are under some form of attack
+static const size_t MAXIMUM_ENTRIES = 65535;
 
 Blacklist::Blacklist() {
 }
@@ -53,6 +55,8 @@ bool Blacklist::isBlackmarked(const char* name) {
   if (!enabled)
     return false;
 
+  time_t now = time(nullptr);
+
   BlacklistMap::iterator i = blm.find(name);
   if (i == blm.end()) {
     // Entry is not already black-marked.
@@ -60,8 +64,27 @@ bool Blacklist::isBlackmarked(const char* name) {
     // with suitable defaults set.
     BlacklistInfo bi;
     bi.marks = 1;
+    bi.added = now;
     bi.blockUntil = 0;
     bi.blockTimeout = initialTimeout;
+
+    // Check that we aren't growing uncontrollably.
+    if (blm.size() >= MAXIMUM_ENTRIES) {
+      time_t oldestTime;
+      BlacklistMap::iterator j, oldest;
+
+      oldestTime = (*blm.begin()).second.added;
+      oldest = blm.begin();
+      for (j = blm.begin(); j != blm.end(); ++j) {
+        if ((*j).second.added < oldestTime) {
+          oldestTime = (*j).second.added;
+          oldest = j;
+        }
+      }
+
+      blm.erase(oldest);
+    }
+
     blm[name] = bi;
     i = blm.find(name);
   }
@@ -69,7 +92,6 @@ bool Blacklist::isBlackmarked(const char* name) {
   // Entry exists - has it reached the threshold yet?
   if ((*i).second.marks >= threshold) {
     // Yes - entry is blocked - has the timeout expired?        
-    time_t now = time(nullptr);
     if (now >= (*i).second.blockUntil) {
       // Timeout has expired.  Reset timeout and allow
       // a re-try.
