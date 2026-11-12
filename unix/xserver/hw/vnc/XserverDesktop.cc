@@ -520,8 +520,9 @@ void XserverDesktop::frameTick(uint64_t msc)
     next = iter; next++;
 
     if (iter->second <= msc) {
+      uint64_t id = iter->first;
       pendingMsc.erase(iter->first);
-      vncPresentMscEvent(iter->first, msc);
+      vncPresentMscEvent(id, msc);
     }
 
     iter = next;
