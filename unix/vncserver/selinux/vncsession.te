@@ -84,6 +84,12 @@ optional_policy(`
 	auth_write_login_records(vnc_session_t)
 ')
 
+# Workaround for:
+# https://github.com/fedora-selinux/selinux-policy/issues/3515
+optional_policy(`
+	fs_getattr_pidfs(vnc_session_t)
+')
+
 optional_policy(`
 	logging_append_all_logs(vnc_session_t)
 ')
