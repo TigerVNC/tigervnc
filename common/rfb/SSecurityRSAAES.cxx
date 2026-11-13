@@ -379,13 +379,12 @@ void SSecurityRSAAES::writeRandom()
     mpz_clear(x);
     throw std::runtime_error(_("Failed to encrypt data"));
   }
-  uint8_t* buffer = new uint8_t[clientKey.size];
-  nettle_mpz_get_str_256(clientKey.size, buffer, x);
+  std::vector<uint8_t> buffer(clientKey.size);
+  nettle_mpz_get_str_256(buffer.size(), buffer.data(), x);
   mpz_clear(x);
-  os->writeU16(clientKey.size);
-  os->writeBytes(buffer, clientKey.size);
+  os->writeU16(buffer.size());
+  os->writeBytes(buffer.data(), buffer.size());
   os->flush();
-  delete[] buffer;
 }
 
 bool SSecurityRSAAES::readRandom()
@@ -401,12 +400,11 @@ bool SSecurityRSAAES::readRandom()
   if (!is->hasDataOrRestore(size))
     return false;
   is->clearRestorePoint();
-  uint8_t* buffer = new uint8_t[size];
-  is->readBytes(buffer, size);
+  std::vector<uint8_t> buffer(size);
+  is->readBytes(buffer.data(), buffer.size());
   size_t randomSize = keySize / 8;
   mpz_t x;
-  nettle_mpz_init_set_str_256_u(x, size, buffer);
-  delete[] buffer;
+  nettle_mpz_init_set_str_256_u(x, buffer.size(), buffer.data());
   if (!rsa_decrypt(&serverKey, &randomSize, clientRandom, x) ||
     randomSize != (size_t)keySize / 8) {
     mpz_clear(x);
