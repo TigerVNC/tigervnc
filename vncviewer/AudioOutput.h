@@ -22,6 +22,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <sys/types.h>
 
 #include <rfb/qemuTypes.h>
 
@@ -47,6 +48,11 @@ public:
   virtual void start() = 0;
   virtual void stop() = 0;
   virtual void play(const uint8_t* samples, size_t length) = 0;
+
+  virtual ssize_t getDelay() { return -1; }
+  virtual size_t getTargetDelay() {
+    return audioMinStreamDelayMs * audioFrequency / 1000;
+  }
 };
 
 #endif
