@@ -39,4 +39,5 @@ endif()
 
 if(UNIX)
   libtool_create_control_file(rdr)
+  create_find_module(rdr)
 endif()

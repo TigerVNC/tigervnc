@@ -19,4 +19,5 @@ endif()
 
 if(UNIX)
   libtool_create_control_file(network)
+  create_find_module(network)
 endif()

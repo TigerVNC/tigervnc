@@ -41,4 +41,5 @@ endif()
 
 if(UNIX)
   libtool_create_control_file(core)
+  create_find_module(core)
 endif()
