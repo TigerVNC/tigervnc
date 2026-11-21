@@ -21,6 +21,7 @@
 #endif
 
 #include <assert.h>
+#include <locale.h>
 
 #include <glib.h>
 #include <glib-unix.h>

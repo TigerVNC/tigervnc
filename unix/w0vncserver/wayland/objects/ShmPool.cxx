@@ -20,6 +20,7 @@
 #include <config.h>
 #endif
 
+#include <errno.h>
 #include <sys/mman.h>
 
 #include <stdexcept>

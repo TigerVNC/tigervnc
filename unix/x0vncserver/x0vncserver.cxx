@@ -29,6 +29,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <errno.h>
+#include <locale.h>
 #include <pwd.h>
 
 #include <core/Configuration.h>
