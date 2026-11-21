@@ -1468,7 +1468,7 @@ void DesktopWindow::remoteResize()
     cc->requestScreenLayout(width, height, layout);
   } catch (std::exception& e) {
     vlog.error("%s", e.what());
-    abort_connection_unexpected(e);
+    abort_connection_unexpected(cc->getServerName(), e);
   }
 }
 
