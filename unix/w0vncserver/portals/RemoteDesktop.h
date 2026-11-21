@@ -30,7 +30,6 @@ namespace rfb { class VNCServer; }
 
 class PortalProxy;
 class Clipboard;
-struct PendingData;
 
 class RemoteDesktop {
 public:

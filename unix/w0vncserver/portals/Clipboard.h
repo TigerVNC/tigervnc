@@ -28,7 +28,6 @@
 
 #include <gio/gio.h>
 
-struct PendingData;
 struct ReadContext;
 class PortalProxy;
 
@@ -57,6 +56,11 @@ public:
   void clearSelection();
 
 private:
+  struct PendingData {
+    uint32_t serial;
+    std::string mimeType;
+  };
+
   // Portal methods
   void selectionWrite(PendingData pendingData, const char* data);
   void selectionWriteDone(uint32_t serial, bool success);

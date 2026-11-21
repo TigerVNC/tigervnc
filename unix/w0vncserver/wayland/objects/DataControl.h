@@ -36,7 +36,6 @@ struct ext_data_control_offer_v1_listener;
 
 #include "Object.h"
 
-struct PendingData;
 struct ReadContext;
 
 namespace wayland {
@@ -64,6 +63,11 @@ namespace wayland {
     void writePending(const char* data);
 
   private:
+    struct PendingData {
+      int32_t fd;
+      std::string mimeType;
+    };
+
     // ext_data_control_device_v1 handlers
     void handleDataOffer(ext_data_control_offer_v1* offer);
     void handleSelection(ext_data_control_offer_v1* offer);

@@ -47,11 +47,6 @@ static const char* MIME_TYPES[] {
   MIME_TEXT_PLAIN,
 };
 
-struct PendingData {
-  uint32_t serial;
-  std::string mimeType;
-};
-
 struct ReadContext {
   Clipboard* instance;
   bool isAlive;

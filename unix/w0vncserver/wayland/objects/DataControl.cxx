@@ -64,11 +64,6 @@ struct ReadContext {
 */
 static std::string tigervncMimeType = "application/x-tigervnc-data-control-" + std::to_string(getpid());
 
-struct PendingData {
-  int32_t fd;
-  std::string mimeType;
-};
-
 static core::LogWriter vlog("WaylandDataControl");
 
 const ext_data_control_device_v1_listener DataControl::deviceListener = {

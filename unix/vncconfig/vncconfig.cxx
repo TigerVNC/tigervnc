@@ -31,6 +31,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <errno.h>
+#include <locale.h>
 
 #include <signal.h>
 #include <X11/X.h>
