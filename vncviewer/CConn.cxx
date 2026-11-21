@@ -305,8 +305,8 @@ void CConn::processNextMsg(core::Timer*)
     if (!desktop) {
       vlog.error(_("The connection was dropped by the server before "
                    "the session could be established."));
-      abort_connection(_("The connection was dropped by the server "
-                       "before the session could be established."));
+      abort_connection(_("The connection to %s was dropped by the server "
+			 "before the session could be established."), getServerName());
     } else {
       disconnect();
     }
@@ -317,11 +317,11 @@ void CConn::processNextMsg(core::Timer*)
     savedUsername.clear();
     savedPassword.clear();
     vlog.error(_("Authentication failed: %s"), e.what());
-    abort_connection(_("Failed to authenticate with the server. Reason "
-                       "given by the server:\n\n%s"), e.what());
+    abort_connection(_("Authentication with %s failed. Reason "
+                       "given by the server:\n\n%s"), getServerName(), e.what());
   } catch (std::exception& e) {
     vlog.error("%s", e.what());
-    abort_connection_unexpected(e);
+    abort_connection_unexpected(getServerName(), e);
   }
 
   recursing = false;
