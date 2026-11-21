@@ -73,6 +73,9 @@
 #include <rfb/VNCSConnectionST.h>
 #include <rfb/ledStates.h>
 
+// Limit the number of unauthenticated clients to mitigate the effects
+// of a denial-of-service attack
+static const size_t MAX_UNAUTH_CLIENTS = 40;
 
 using namespace rfb;
 
@@ -158,6 +161,24 @@ bool VNCServerST::addSocket(network::Socket* sock, bool outgoing, AccessRights a
     } catch (std::exception&) {
     }
     return false;
+  }
+
+  // Limit the number of unauthenticated connections to mitigate the
+  // effects of a denial-of-service attack
+  if (clients.size() >= MAX_UNAUTH_CLIENTS) {
+    size_t unauth;
+
+    unauth = 0;
+    for (VNCSConnectionST* client : clients) {
+      if (!client->authenticated())
+        unauth++;
+    }
+
+    if (unauth >= MAX_UNAUTH_CLIENTS) {
+      connectionsLog.error(_("Too many unauthenticated connections: %s"),
+                           sock->getPeerEndpoint());
+      return false;
+    }
   }
 
   connectionsLog.info(_("Accepted: %s"), sock->getPeerEndpoint());

@@ -383,9 +383,7 @@ void TightDecoder::decodeRect(const core::Rect& r, const uint8_t* buffer,
 
   // Determine if the data should be decompressed or just copied.
   size_t rowSize, dataSize;
-  uint8_t* netbuf;
-
-  netbuf = nullptr;
+  std::vector<uint8_t> netbuf;
 
   if (palSize != 0) {
     if (palSize <= 2)
@@ -405,7 +403,6 @@ void TightDecoder::decodeRect(const core::Rect& r, const uint8_t* buffer,
   else {
     uint32_t len;
     int streamId;
-    rdr::MemInStream* ms;
 
     assert(buflen >= 4);
 
@@ -416,21 +413,20 @@ void TightDecoder::decodeRect(const core::Rect& r, const uint8_t* buffer,
     assert(buflen >= len);
 
     streamId = comp_ctl & 0x03;
-    ms = new rdr::MemInStream(bufptr, len);
-    zis[streamId].setUnderlying(ms, len);
+    rdr::MemInStream ms(bufptr, len);
+    zis[streamId].setUnderlying(&ms, len);
 
     // Allocate buffer and decompress the data
-    netbuf = new uint8_t[dataSize];
+    netbuf.resize(dataSize);
 
     if (!zis[streamId].hasData(dataSize))
       throw protocol_error(_("Failed to decode Tight rectangle"));
-    zis[streamId].readBytes(netbuf, dataSize);
+    zis[streamId].readBytes(netbuf.data(), dataSize);
 
     zis[streamId].flushUnderlying();
     zis[streamId].setUnderlying(nullptr, 0);
-    delete ms;
 
-    bufptr = netbuf;
+    bufptr = netbuf.data();
     buflen = dataSize;
   }
 
@@ -438,6 +434,7 @@ void TightDecoder::decodeRect(const core::Rect& r, const uint8_t* buffer,
   bool directDecode;
 
   uint8_t* outbuf;
+  std::vector<uint8_t> pixbuf;
   int stride;
 
   if (pb->getPF() == pf) {
@@ -451,7 +448,8 @@ void TightDecoder::decodeRect(const core::Rect& r, const uint8_t* buffer,
   if (directDecode)
     outbuf = pb->getBufferRW(r, &stride);
   else {
-    outbuf = new uint8_t[r.area() * (pf.bpp/8)];
+    pixbuf.resize(r.area() * (pf.bpp/8));
+    outbuf = pixbuf.data();
     stride = r.width();
   }
 
@@ -515,12 +513,8 @@ void TightDecoder::decodeRect(const core::Rect& r, const uint8_t* buffer,
 
   if (directDecode)
     pb->commitBufferRW(r);
-  else {
+  else
     pb->imageRect(pf, r, outbuf);
-    delete [] outbuf;
-  }
-
-  delete [] netbuf;
 }
 
 uint32_t TightDecoder::readCompact(rdr::InStream* is)

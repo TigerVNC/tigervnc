@@ -399,6 +399,7 @@ bool SMsgReader::readExtendedClipboard(int32_t len)
     int i;
     size_t num;
     size_t lengths[16];
+    std::vector<uint8_t> storage[16];
     uint8_t* buffers[16];
 
     zis.setUnderlying(is, len - 4);
@@ -440,7 +441,8 @@ bool SMsgReader::readExtendedClipboard(int32_t len)
       if (!zis.hasData(lengths[num]))
         throw protocol_error(_("Invalid extended clipboard message"));
 
-      buffers[num] = new uint8_t[lengths[num]];
+      storage[num].resize(lengths[num]);
+      buffers[num] = storage[num].data();
       zis.readBytes(buffers[num], lengths[num]);
       num++;
     }
@@ -449,13 +451,6 @@ bool SMsgReader::readExtendedClipboard(int32_t len)
     zis.setUnderlying(nullptr, 0);
 
     handler->clipboardProvide(flags, lengths, buffers);
-
-    num = 0;
-    for (i = 0;i < 16;i++) {
-      if (!(flags & 1 << i))
-        continue;
-      delete [] buffers[num++];
-    }
   } else {
     switch (action) {
     case clipboardRequest:

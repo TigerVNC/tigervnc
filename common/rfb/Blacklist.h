@@ -68,6 +68,7 @@ namespace rfb {
   protected:
     struct BlacklistInfo {
       int marks;
+      time_t added;
       time_t blockUntil;
       unsigned int blockTimeout;
     };

@@ -53,6 +53,7 @@
 #include <rfb/CMsgWriter.h>
 #include <rfb/UpdateTracker.h>
 #include <rfb/EncodeManager.h>
+#include <rfb/encodings.h>
 #include <rfb/SConnection.h>
 #include <rfb/SMsgWriter.h>
 
@@ -61,6 +62,9 @@
 static core::IntParameter width("width", "Frame buffer width", 0);
 static core::IntParameter height("height", "Frame buffer height", 0);
 static core::IntParameter count("count", "Number of benchmark iterations", 9);
+static core::EnumParameter encodingParam("encoding", "Encoding to benchmark",
+                                         {"Raw", "RRE", "Hextile", "Tight",
+                                          "ZRLE", "JPEG"}, "Tight");
 
 static core::StringParameter format("format", "Pixel format (e.g. bgr888)", "");
 
@@ -70,13 +74,6 @@ static core::BoolParameter translate("translate",
 
 // The frame buffer (and output) is always this format
 static const rfb::PixelFormat fbPF(32, 24, false, true, 255, 255, 255, 0, 8, 16);
-
-// Encodings to use
-static const int32_t encodings[] = {
-  rfb::encodingTight, rfb::encodingCopyRect, rfb::encodingRRE,
-  rfb::encodingHextile, rfb::encodingZRLE, rfb::pseudoEncodingLastRect,
-  rfb::pseudoEncodingQualityLevel0 + 8,
-  rfb::pseudoEncodingCompressLevel0 + 2};
 
 class DummyOutStream : public rdr::OutStream {
 public:
@@ -116,6 +113,7 @@ public:
 public:
   double decodeTime;
   double encodeTime;
+  double maxEncodeFrameTime;
 
 protected:
   rdr::FileInStream *in;
@@ -137,6 +135,8 @@ public:
   ~SConn();
 
   void writeUpdate(const rfb::UpdateInfo& ui, const rfb::PixelBuffer* pb);
+
+  void setEncoding(int32_t selectedEncoding);
 
   void getStats(double&, unsigned long long&, unsigned long long&);
 
@@ -187,6 +187,7 @@ CConn::CConn(const char *filename)
 
   decodeTime = 0.0;
   encodeTime = 0.0;
+  maxEncodeFrameTime = 0.0;
 
   in = new rdr::FileInStream(filename);
   out = new DummyOutStream;
@@ -217,7 +218,7 @@ CConn::CConn(const char *filename)
 
   sc = new SConn();
   sc->client.setPF((bool)translate ? fbPF : pf);
-  ((rfb::SMsgHandler*)sc)->setEncodings(sizeof(encodings) / sizeof(*encodings), encodings);
+  sc->setEncoding(rfb::encodingNum(encodingParam.getValueStr().c_str()));
 }
 
 CConn::~CConn()
@@ -270,10 +271,15 @@ void CConn::framebufferUpdateEnd()
   updates.getUpdateInfo(&ui, clip);
 
   startCpuCounter();
+  startTimeCounter();
   sc->writeUpdate(ui, pb);
+  endTimeCounter();
   endCpuCounter();
 
   encodeTime += getCpuCounter();
+  double frameTime = getTimeCounter() * 1000;
+  if (frameTime > maxEncodeFrameTime)
+    maxEncodeFrameTime = frameTime;
 }
 
 bool CConn::dataRect(const core::Rect& r, int encoding)
@@ -339,6 +345,17 @@ SConn::SConn()
   manager = new Manager(this);
 }
 
+void SConn::setEncoding(int32_t selectedEncoding)
+{
+  const int32_t encodings[] = {
+    selectedEncoding, rfb::pseudoEncodingLastRect,
+    rfb::pseudoEncodingQualityLevel0 + 8,
+    rfb::pseudoEncodingCompressLevel0 + 2
+  };
+  ((rfb::SMsgHandler*)this)->setEncodings(sizeof(encodings) / sizeof(*encodings),
+                                          encodings);
+}
+
 SConn::~SConn()
 {
   delete manager;
@@ -381,6 +398,7 @@ struct stats
   double ratio;
   unsigned long long bytes;
   unsigned long long rawEquivalent;
+  double maxEncodeFrameTime;
 };
 
 static struct stats runTest(const char *fn)
@@ -411,6 +429,7 @@ static struct stats runTest(const char *fn)
 
   s.decodeTime = cc->decodeTime;
   s.encodeTime = cc->encodeTime;
+  s.maxEncodeFrameTime = cc->maxEncodeFrameTime;
   s.realTime = (double)stop.tv_sec - start.tv_sec;
   s.realTime += ((double)stop.tv_usec - start.tv_usec)/1000000.0;
   cc->getStats(s.ratio, s.bytes, s.rawEquivalent);
@@ -549,6 +568,17 @@ int main(int argc, char **argv)
   meddev = dev[runCount/2];
 
   printf("CPU time (encoding): %g s (+/- %g %%)\n", median, meddev);
+
+  for (i = 0; i < runCount; i++)
+    values[i] = runs[i].maxEncodeFrameTime;
+
+  sort(values, runCount);
+  median = values[runCount/2];
+  for (i = 0; i < runCount; i++)
+    dev[i] = median == 0 ? 0 : fabs((values[i] - median) / median) * 100;
+  sort(dev, runCount);
+  meddev = dev[runCount/2];
+  printf("Max framebuffer encode time: %g ms (+/- %g %%)\n", median, meddev);
 
   // And for CPU core usage encoding
   for (i = 0;i < runCount;i++)
