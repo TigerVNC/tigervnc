@@ -99,6 +99,17 @@ TEST(ConfigArgs, noDash)
   argv = {"prog", "fooparam=123"};
   ret = core::Configuration::handleParamArg(argv.size(),
                                             (char**)argv.data(), 1);
+  EXPECT_EQ(ret, -1);
+
+  // Bad parameter that looks like a file path
+  argv = {"prog", "/path/fooparam=123"};
+  ret = core::Configuration::handleParamArg(argv.size(),
+                                            (char**)argv.data(), 1);
+  EXPECT_EQ(ret, 0);
+
+  argv = {"prog", "C:\\fooparam=123"};
+  ret = core::Configuration::handleParamArg(argv.size(),
+                                            (char**)argv.data(), 1);
   EXPECT_EQ(ret, 0);
 }
 
