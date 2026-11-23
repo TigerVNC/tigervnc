@@ -325,6 +325,14 @@ int main(int argc, char** argv)
       continue;
     }
 
+    if (ret == -1) {
+      fprintf(stderr, _("%s: Unrecognized option '%s'\n"),
+              programName, argv[i]);
+      fprintf(stderr, _("See '%s --help' for more information.\n"),
+              programName);
+      exit(1);
+    }
+
     if (strcmp(argv[i], "-h") == 0 ||
         strcmp(argv[i], "-help") == 0 ||
         strcmp(argv[i], "--help") == 0) {
