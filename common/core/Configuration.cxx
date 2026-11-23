@@ -145,6 +145,7 @@ int Configuration::handleArg(int argc, char* argv[], int index)
 {
   std::string param, val;
   const char* equal = strchr(argv[index], '=');
+  bool noDash;
 
   if (equal == argv[index])
     return 0;
@@ -156,7 +157,9 @@ int Configuration::handleArg(int argc, char* argv[], int index)
     param.assign(argv[index]);
   }
 
-  if ((param.length() > 0) && (param[0] == '-')) {
+  noDash = param.empty() || (param[0] != '-');
+
+  if (!noDash) {
     // allow gnu-style --<option>
     if ((param.length() > 1) && (param[1] == '-'))
       param = param.substr(2);
@@ -168,8 +171,22 @@ int Configuration::handleArg(int argc, char* argv[], int index)
       return 0;
   }
 
-  if (equal)
-    return set(param.c_str(), val.c_str()) ? 1 : 0;
+  if (equal) {
+    if (set(param.c_str(), val.c_str()))
+      return 1;
+    // A "Param=value" argument without a leading '-' that names an
+    // unknown parameter is almost certainly a misspelled option rather
+    // than a positional argument: host names cannot contain '=', and
+    // file paths will have a path separator. Return -1 so the caller
+    // can report a proper error. Arguments with a path separator are
+    // left for the caller to handle as a positional (e.g. a config
+    // file).
+    if (noDash &&
+        strchr(argv[index], '/') == nullptr &&
+        strchr(argv[index], '\\') == nullptr)
+      return -1;
+    return 0;
+  }
 
   Parameter* current = get(param.c_str());
   if (!current)

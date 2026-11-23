@@ -78,7 +78,9 @@ namespace core {
 
     // - handleArg
     //   Parse a command line argument into a parameter, returning how
-    //   many arguments were consumed
+    //   many arguments were consumed. Returns a positive number if the
+    //   argument was consumed, 0 if it wasn't a parameter argument, or
+    //   -1 if it looked like a parameter but named an unknown one.
     int handleArg(int argc, char* argv[], int index);
 
 

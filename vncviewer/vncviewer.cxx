@@ -612,6 +612,15 @@ int main(int argc, char** argv)
       continue;
     }
 
+    if (ret == -1) {
+      fprintf(stderr, "\n");
+      fprintf(stderr, _("%s: Unrecognized option '%s'\n"),
+              argv[0], argv[i]);
+      fprintf(stderr, _("See '%s --help' for more information.\n"),
+              argv[0]);
+      exit(1);
+    }
+
     if (strcmp(argv[i], "-h") == 0 ||
         strcmp(argv[i], "--help") == 0) {
       usage(argv[0]);
