@@ -46,8 +46,13 @@ using namespace rfb;
 static const int TIGHT_MAX_WIDTH = 2048;
 static const int TIGHT_MIN_TO_COMPRESS = 12;
 
+static bool isTightNoZlib(uint8_t subencoding)
+{
+  return (subencoding & ~tightExplicitFilter) == tightNoZlib;
+}
+
 TightDecoder::TightDecoder()
-  : Decoder(DecoderPartiallyOrdered), readState(IDLE)
+  : Decoder(DecoderPartiallyOrdered), readState(IDLE), readNoZlib(false)
 {
 }
 
@@ -69,8 +74,9 @@ bool TightDecoder::readRect(const core::Rect& r, rdr::InStream* is,
 
     comp_ctl >>= 4;
 
+    readNoZlib = isTightNoZlib(comp_ctl);
     // Quit on unsupported compression type.
-    if (comp_ctl > tightMaxSubencoding)
+    if (comp_ctl > tightMaxSubencoding && !readNoZlib)
       throw protocol_error(_("Bad Tight subencoding value received"));
 
     if (comp_ctl == tightFill)
@@ -218,10 +224,17 @@ bool TightDecoder::readRect(const core::Rect& r, rdr::InStream* is,
 
     len = readCompact(is);
 
+    if (readNoZlib && len != dataSize) {
+      is->clearRestorePoint();
+      throw protocol_error(_("Invalid Tight uncompressed data length"));
+    }
+
     if (!is->hasDataOrRestore(len))
       return false;
 
-    os->writeOpaque32(len);
+    // The decoder already knows the uncompressed size from the rectangle.
+    if (!readNoZlib)
+      os->writeOpaque32(len);
     os->copyBytes(is, len);
 
     is->clearRestorePoint();
@@ -323,7 +336,7 @@ void TightDecoder::decodeRect(const core::Rect& r, const uint8_t* buffer,
   }
 
   // Quit on unsupported compression type.
-  assert(comp_ctl <= tightMaxSubencoding);
+  assert(comp_ctl <= tightMaxSubencoding || isTightNoZlib(comp_ctl));
 
   // "Basic" compression type.
 
@@ -398,7 +411,7 @@ void TightDecoder::decodeRect(const core::Rect& r, const uint8_t* buffer,
 
   dataSize = r.height() * rowSize;
 
-  if (dataSize < TIGHT_MIN_TO_COMPRESS)
+  if (dataSize < TIGHT_MIN_TO_COMPRESS || isTightNoZlib(comp_ctl))
     assert(buflen >= dataSize);
   else {
     uint32_t len;

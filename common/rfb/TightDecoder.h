@@ -67,6 +67,7 @@ namespace rfb {
       PIXELS,
     } readState;
     int readPalSize;
+    bool readNoZlib;
 
     rdr::ZlibInStream zis[4];
   };

@@ -23,6 +23,7 @@ namespace rfb {
   const unsigned int tightFill = 0x08;
   const unsigned int tightJpeg = 0x09;
   const unsigned int tightMaxSubencoding = 0x09;
+  const unsigned int tightNoZlib = 0x0a;
 
   // Filters to improve compression efficiency
   const unsigned int tightFilterCopy = 0x00;

@@ -55,6 +55,10 @@ add_executable(emulatemb emulatemb.cxx ../../vncviewer/EmulateMB.cxx)
 target_link_libraries(emulatemb PRIVATE core GTest::gtest_main)
 gtest_discover_tests(emulatemb)
 
+add_executable(tightdecoder tightdecoder.cxx)
+target_link_libraries(tightdecoder PRIVATE rfbclient GTest::gtest_main)
+gtest_discover_tests(tightdecoder)
+
 if(ENABLE_H264)
   add_executable(h264decoder h264decoder.cxx)
   target_link_libraries(h264decoder PRIVATE rfbclient GTest::gtest_main)
